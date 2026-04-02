@@ -48,8 +48,8 @@ a{color:inherit;text-decoration:none}
 .v-memory{background:linear-gradient(135deg,#2a1a1a,#3a2a1a)}
 .v-typing{background:linear-gradient(135deg,#1a2a3a,#1a1a3e)}
 
-/* Newsletter */
-.newsletter{text-align:center;padding:80px 20px;max-width:560px;margin:0 auto}
+/* Newsletter - top banner */
+.newsletter{text-align:center;padding:28px 20px 24px;max-width:560px;margin:0 auto;background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(255,101,132,.06));border-radius:16px;margin:16px auto;border:1px solid rgba(108,99,255,.15)}
 .newsletter h2{font-size:28px;font-weight:700;margin-bottom:12px}
 .newsletter p{color:var(--text2);margin-bottom:24px;font-size:15px}
 .sub-form{display:flex;gap:10px;max-width:440px;margin:0 auto}
@@ -90,6 +90,16 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
+<section class="newsletter">
+  <h2 data-i18n="nl_title">新游戏上线时通知我</h2>
+  <p data-i18n="nl_desc">订阅邮件，第一时间玩到新实验。我们不会发垃圾邮件。</p>
+  <form class="sub-form" onsubmit="return subscribe(event)">
+    <input type="email" id="emailInput" data-i18n-placeholder="nl_placeholder" placeholder="你的邮箱" required>
+    <button type="submit" data-i18n="nl_btn">订阅</button>
+  </form>
+  <div class="sub-msg" id="subMsg" data-i18n="nl_success">订阅成功！感谢你的关注。</div>
+</section>
+
 <section class="hero">
   <h1 data-i18n="hero_title"><span class="highlight">有趣的</span>小实验</h1>
   <p data-i18n="hero_desc">免费的浏览器小游戏和互动实验，无需注册，即开即玩</p>
@@ -128,16 +138,6 @@ a{color:inherit;text-decoration:none}
       <span class="card-tag" data-i18n="tag_test">测试</span>
     </div>
   </a>
-</section>
-
-<section class="newsletter">
-  <h2 data-i18n="nl_title">新游戏上线时通知我</h2>
-  <p data-i18n="nl_desc">订阅邮件，第一时间玩到新实验。我们不会发垃圾邮件。</p>
-  <form class="sub-form" onsubmit="return subscribe(event)">
-    <input type="email" id="emailInput" data-i18n-placeholder="nl_placeholder" placeholder="你的邮箱" required>
-    <button type="submit" data-i18n="nl_btn">订阅</button>
-  </form>
-  <div class="sub-msg" id="subMsg" data-i18n="nl_success">订阅成功！感谢你的关注。</div>
 </section>
 
 <footer class="footer">

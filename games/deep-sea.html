@@ -85,9 +85,13 @@ var ZONES=[
    from:0,to:200,color1:'#0077be',color2:'#005a8e',
    creatures:[
      {icon:'🐬',depth:10,zh:['海豚','群居动物，能跳出水面3米高'],en:['Dolphin','Social creatures that can leap 3m above water'],ja:['イルカ','水面3m上まで跳べる社会的動物'],ko:['돌고래','수면 3m 위로 뛰어오르는 사회적 동물'],es:['Delfin','Animales sociales que saltan 3m'],fr:['Dauphin','Animaux sociaux sautant a 3m']},
+     {icon:'🪸',depth:20,zh:['珊瑚礁','占海洋面积不到1%，却养活了25%的海洋生物'],en:['Coral Reef','Less than 1% of ocean but supports 25% of marine life'],ja:['サンゴ礁','海洋の1%未満で25%の海洋生物を支える'],ko:['산호초','해양의 1% 미만이지만 해양 생물 25%의 서식지'],es:['Arrecife de coral','Menos del 1% del oceano, 25% de vida marina'],fr:['Recif corallien','Moins de 1% de l ocean, 25% de la vie marine']},
      {icon:'🐢',depth:40,zh:['海龟','能屏住呼吸长达7小时'],en:['Sea Turtle','Can hold breath for up to 7 hours'],ja:['ウミガメ','最大7時間息を止められる'],ko:['바다거북','최대 7시간 숨을 참을 수 있음'],es:['Tortuga marina','Aguanta 7 horas sin respirar'],fr:['Tortue de mer','Peut retenir son souffle 7h']},
+     {icon:'🐠',depth:60,zh:['小丑鱼','和海葵共生，互相保护'],en:['Clownfish','Lives in symbiosis with sea anemones'],ja:['カクレクマノミ','イソギンチャクと共生'],ko:['흰동가리','말미잘과 공생 관계'],es:['Pez payaso','Vive en simbiosis con las anemonas'],fr:['Poisson-clown','Vit en symbiose avec les anemones']},
      {icon:'🦈',depth:100,zh:['大白鲨','海洋顶级猎食者，时速56公里'],en:['Great White Shark','Apex predator, swims at 56 km/h'],ja:['ホホジロザメ','時速56kmで泳ぐ頂点捕食者'],ko:['백상아리','시속 56km의 최상위 포식자'],es:['Gran tiburon blanco','Depredador apex, 56 km/h'],fr:['Grand requin blanc','Predateur apex, 56 km/h']},
-     {icon:'🐙',depth:150,zh:['章鱼','拥有3颗心脏和蓝色血液'],en:['Octopus','Has 3 hearts and blue blood'],ja:['タコ','心臓3つと青い血を持つ'],ko:['문어','심장 3개와 파란 피를 가짐'],es:['Pulpo','Tiene 3 corazones y sangre azul'],fr:['Pieuvre','3 coeurs et sang bleu']}
+     {icon:'🦭',depth:120,zh:['海豹','能在水下睡觉，每次只闭一只眼'],en:['Seal','Can sleep underwater, closing one eye at a time'],ja:['アザラシ','水中で片目ずつ閉じて眠れる'],ko:['물범','물속에서 한쪽 눈만 감고 잠을 잠'],es:['Foca','Puede dormir bajo el agua'],fr:['Phoque','Peut dormir sous l eau']},
+     {icon:'🐙',depth:150,zh:['章鱼','拥有3颗心脏和蓝色血液'],en:['Octopus','Has 3 hearts and blue blood'],ja:['タコ','心臓3つと青い血を持つ'],ko:['문어','심장 3개와 파란 피를 가짐'],es:['Pulpo','Tiene 3 corazones y sangre azul'],fr:['Pieuvre','3 coeurs et sang bleu']},
+     {icon:'🐡',depth:180,zh:['河豚','体内有足以杀死30人的毒素'],en:['Pufferfish','Contains enough toxin to kill 30 humans'],ja:['フグ','30人を殺す毒を持つ'],ko:['복어','30명을 죽일 수 있는 독소 보유'],es:['Pez globo','Toxina para matar a 30 personas'],fr:['Poisson-globe','Assez de toxine pour tuer 30 personnes']}
    ],
    landmarks:[
      {depth:40,zh:'奥运会游泳池深度',en:'Olympic pool depth',ja:'オリンピックプールの深さ',ko:'올림픽 수영장 깊이',es:'Profundidad piscina olimpica',fr:'Profondeur piscine olympique'},
@@ -97,30 +101,42 @@ var ZONES=[
    from:200,to:1000,color1:'#005a8e',color2:'#002244',
    creatures:[
      {icon:'🦑',depth:300,zh:['巨型鱿鱼','眼睛有篮球那么大'],en:['Giant Squid','Eyes as big as basketballs'],ja:['ダイオウイカ','バスケットボール大の目'],ko:['대왕오징어','농구공만 한 눈'],es:['Calamar gigante','Ojos como pelotas de baloncesto'],fr:['Calmar geant','Yeux grands comme des ballons']},
+     {icon:'🦞',depth:400,zh:['深海龙虾','在黑暗中用触角感知周围环境'],en:['Deep-sea Lobster','Uses antennae to sense surroundings in darkness'],ja:['深海ロブスター','触角で暗闇を感知'],ko:['심해 랍스터','더듬이로 어둠 속 환경을 감지'],es:['Langosta abisal','Usa antenas para percibir en la oscuridad'],fr:['Homard des abysses','Utilise ses antennes dans l obscurite']},
      {icon:'🐋',depth:500,zh:['抹香鲸','能下潜到2000米深处'],en:['Sperm Whale','Can dive to 2000m depth'],ja:['マッコウクジラ','2000mまで潜れる'],ko:['향고래','2000m 깊이까지 잠수 가능'],es:['Cachalote','Puede bucear a 2000m'],fr:['Cachalot','Plonge a 2000m']},
-     {icon:'💡',depth:700,zh:['灯笼鱼','用生物发光吸引猎物'],en:['Lanternfish','Uses bioluminescence to attract prey'],ja:['ハダカイワシ','生物発光で獲物を引き寄せる'],ko:['등불고기','생물 발광으로 먹이를 유인'],es:['Pez linterna','Usa bioluminiscencia para atraer presas'],fr:['Poisson-lanterne','Bioluminescence pour attirer les proies']}
+     {icon:'💡',depth:700,zh:['灯笼鱼','用生物发光吸引猎物'],en:['Lanternfish','Uses bioluminescence to attract prey'],ja:['ハダカイワシ','生物発光で獲物を引き寄せる'],ko:['등불고기','생물 발광으로 먹이를 유인'],es:['Pez linterna','Usa bioluminiscencia para atraer presas'],fr:['Poisson-lanterne','Bioluminescence pour attirer les proies']},
+     {icon:'🐚',depth:800,zh:['鹦鹉螺','活化石，在地球上存活了5亿年'],en:['Nautilus','Living fossil, survived 500 million years on Earth'],ja:['オウムガイ','5億年生き延びた生きた化石'],ko:['앵무조개','5억 년 동안 살아남은 살아있는 화석'],es:['Nautilo','Fosil viviente de 500 millones de anos'],fr:['Nautile','Fossile vivant depuis 500 millions d annees']},
+     {icon:'🫧',depth:900,zh:['管水母','最长可达40米，比蓝鲸还长'],en:['Siphonophore','Can reach 40m long, longer than a blue whale'],ja:['クダクラゲ','最長40m、シロナガスクジラより長い'],ko:['관해파리','최대 40m, 대왕고래보다 김'],es:['Sifonoforo','Hasta 40m, mas largo que una ballena azul'],fr:['Siphonophore','Jusqu a 40m, plus long qu une baleine bleue']}
    ],
    landmarks:[
      {depth:332,zh:'人类自由潜水世界纪录',en:'Human freedive world record',ja:'人間のフリーダイビング世界記録',ko:'인간 프리다이빙 세계 기록',es:'Record mundial apnea',fr:'Record mondial apnee'},
-     {depth:500,zh:'帝国大厦的高度',en:'Height of Empire State Building',ja:'エンパイアステートビルの高さ',ko:'엠파이어 스테이트 빌딩 높이',es:'Altura Empire State',fr:'Hauteur Empire State Building'}
+     {depth:500,zh:'帝国大厦的高度',en:'Height of Empire State Building',ja:'エンパイアステートビルの高さ',ko:'엠파이어 스테이트 빌딩 높이',es:'Altura Empire State',fr:'Hauteur Empire State Building'},
+     {depth:828,zh:'迪拜塔的高度',en:'Height of Burj Khalifa',ja:'ブルジュ・ハリファの高さ',ko:'부르즈 할리파 높이',es:'Altura del Burj Khalifa',fr:'Hauteur du Burj Khalifa'}
    ]},
   {name:{zh:'深海带',en:'Midnight Zone',ja:'漸深層',ko:'심해대',es:'Zona abisal',fr:'Zone abyssale'},
    from:1000,to:4000,color1:'#002244',color2:'#0a0a14',
    creatures:[
      {icon:'🐡',depth:1500,zh:['琵琶鱼（鮟鱇鱼）','雌性头顶的发光诱饵吸引猎物'],en:['Anglerfish','Female uses glowing lure on its head'],ja:['アンコウ','頭の発光ルアーで獲物を引き寄せる'],ko:['아귀','머리의 발광 미끼로 먹이 유인'],es:['Rape','Usa senuelo luminoso en la cabeza'],fr:['Baudroie','Leurre lumineux sur la tete']},
+     {icon:'🦷',depth:1800,zh:['尖牙鱼','拥有与身体比例最大的牙齿'],en:['Fangtooth Fish','Has the largest teeth relative to body size'],ja:['オニキンメ','体に対して最大の歯を持つ'],ko:['송곳니고기','몸 대비 가장 큰 이빨 보유'],es:['Pez colmillo','Los dientes mas grandes en proporcion'],fr:['Poisson a crocs','Plus grandes dents par rapport au corps']},
+     {icon:'🐍',depth:2000,zh:['吞噬鳗','能吞下比自己大的猎物'],en:['Gulper Eel','Can swallow prey larger than itself'],ja:['フウセンウナギ','自分より大きい獲物を飲み込む'],ko:['풍선장어','자기보다 큰 먹이를 삼킬 수 있음'],es:['Anguila engullidora','Puede tragar presas mas grandes'],fr:['Anguille avaleuse','Peut avaler des proies plus grosses']},
      {icon:'🪱',depth:2500,zh:['管虫','不需要阳光，靠化学能生存'],en:['Tube Worm','Lives on chemical energy, no sunlight needed'],ja:['チューブワーム','光不要、化学エネルギーで生存'],ko:['관벌레','햇빛 없이 화학 에너지로 생존'],es:['Gusano tubicola','Vive de energia quimica'],fr:['Ver tubicole','Vit d energie chimique']},
-     {icon:'🦐',depth:3500,zh:['巨型等足虫','深海版的"西瓜虫"，可达50厘米'],en:['Giant Isopod','Deep-sea "roly-poly", up to 50cm'],ja:['オオグソクムシ','深海のダンゴムシ、50cmまで'],ko:['대왕등각류','심해의 공벌레, 최대 50cm'],es:['Isopodo gigante','"Bicho bola" del mar profundo, 50cm'],fr:['Isopode geant','Cloporte des abysses, 50cm']}
+     {icon:'🕷️',depth:3000,zh:['海蜘蛛','腿展可达70厘米的深海节肢动物'],en:['Sea Spider','Deep-sea arthropod with 70cm leg span'],ja:['ウミグモ','脚の広がり70cmの深海節足動物'],ko:['바다거미','다리 폭 70cm의 심해 절지동물'],es:['Arana de mar','Artropodo abisal, 70cm de envergadura'],fr:['Araignee de mer','Arthropode abysse, 70cm d envergure']},
+     {icon:'🦐',depth:3500,zh:['巨型等足虫','深海版的"西瓜虫"，可达50厘米'],en:['Giant Isopod','Deep-sea "roly-poly", up to 50cm'],ja:['オオグソクムシ','深海のダンゴムシ、50cmまで'],ko:['대왕등각류','심해의 공벌레, 최대 50cm'],es:['Isopodo gigante','"Bicho bola" del mar profundo, 50cm'],fr:['Isopode geant','Cloporte des abysses, 50cm']},
+     {icon:'🫧',depth:3800,zh:['深海盲虾','眼睛退化，靠背部感光器官探测热泉'],en:['Blind Shrimp','Eyeless, detects hydrothermal vents via back sensors'],ja:['深海盲エビ','目が退化、背中のセンサーで検出'],ko:['심해 맹새우','눈이 퇴화, 등의 감지 기관으로 열수구 탐지'],es:['Camaron ciego','Sin ojos, detecta fuentes hidrotermales'],fr:['Crevette aveugle','Sans yeux, detecte les sources hydrothermales']}
    ],
    landmarks:[
      {depth:1000,zh:'永恒黑暗从这里开始',en:'Permanent darkness begins here',ja:'永遠の暗闇がここから始まる',ko:'영원한 어둠이 시작되는 곳',es:'La oscuridad permanente empieza aqui',fr:'Les tenebres permanentes commencent ici'},
+     {depth:2250,zh:'大西洋中脊深度',en:'Mid-Atlantic Ridge depth',ja:'大西洋中央海嶺の深さ',ko:'대서양 중앙 해령 깊이',es:'Dorsal mesoatlantica',fr:'Dorsale medio-atlantique'},
      {depth:3800,zh:'泰坦尼克号沉没深度',en:'Depth of Titanic wreck',ja:'タイタニック号沈没深度',ko:'타이타닉호 침몰 깊이',es:'Profundidad del Titanic',fr:'Profondeur du Titanic'}
    ]},
   {name:{zh:'超深渊带',en:'Hadal Zone',ja:'超深海帯',ko:'초심해대',es:'Zona hadal',fr:'Zone hadale'},
    from:4000,to:11000,color1:'#0a0a14',color2:'#020204',
    creatures:[
      {icon:'🐌',depth:5000,zh:['铁甲蜗牛','壳上覆盖硫化铁，天然装甲'],en:['Scaly-foot Snail','Shell armored with iron sulfide'],ja:['スケーリーフット','硫化鉄で覆われた殻'],ko:['비늘발 달팽이','황화철로 덮인 갑옷 껍질'],es:['Caracol de pie escamoso','Armadura de sulfuro de hierro'],fr:['Escargot a pied ecailleux','Coquille en sulfure de fer']},
+     {icon:'🐛',depth:6000,zh:['僵尸蠕虫','以鲸鱼骨骼为食，没有嘴也没有胃'],en:['Bone Worm','Eats whale bones, has no mouth or stomach'],ja:['ホネクイハナムシ','クジラの骨を食べ、口も胃もない'],ko:['뼈먹는 벌레','고래 뼈를 먹으며 입도 위도 없음'],es:['Gusano de huesos','Come huesos de ballena, sin boca ni estomago'],fr:['Ver mangeur d os','Mange les os de baleine, sans bouche']},
+     {icon:'🦑',depth:7000,zh:['小飞象章鱼','耳状鳍像大象耳朵，最深的章鱼'],en:['Dumbo Octopus','Ear-like fins, deepest-living octopus'],ja:['ダンボオクトパス','象の耳のようなヒレ、最深のタコ'],ko:['덤보 문어','코끼리 귀 모양 지느러미, 가장 깊은 문어'],es:['Pulpo Dumbo','Aletas como orejas de elefante'],fr:['Pieuvre Dumbo','Nageoires comme des oreilles d elephant']},
      {icon:'🪼',depth:8200,zh:['深海水母','在8000米深处发现的幽灵水母'],en:['Deep-sea Jellyfish','Ghost jellyfish found at 8000m'],ja:['深海クラゲ','8000mで発見された幽霊クラゲ'],ko:['심해 해파리','8000m에서 발견된 유령 해파리'],es:['Medusa abisal','Medusa fantasma a 8000m'],fr:['Meduse abyssale','Meduse fantome a 8000m']},
      {icon:'🐟',depth:8178,zh:['马里亚纳狮子鱼','已知最深处的鱼类'],en:['Mariana Snailfish','Deepest-living fish ever found'],ja:['マリアナスネイルフィッシュ','最も深い場所に住む魚'],ko:['마리아나 꼼치','가장 깊은 곳에 사는 물고기'],es:['Pez caracol de las Marianas','El pez mas profundo'],fr:['Poisson-limace des Mariannes','Le poisson le plus profond']},
+     {icon:'🦐',depth:9800,zh:['深渊钩虾','在近万米深处仍活跃的甲壳动物'],en:['Hadal Amphipod','Crustacean thriving near 10,000m depth'],ja:['超深海端脚類','1万m近くで繁栄する甲殻類'],ko:['초심해 단각류','거의 만 미터 깊이에서 번성하는 갑각류'],es:['Anfipodo hadal','Crustaceo activo cerca de 10000m'],fr:['Amphipode hadal','Crustace actif pres de 10000m']},
      {icon:'🦠',depth:10900,zh:['极端微生物','在极端高压下仍然存活的生命'],en:['Extremophile Microbes','Life surviving extreme pressure'],ja:['極限環境微生物','極限の圧力でも生き残る生命'],ko:['극한 미생물','극한의 수압에서 생존하는 생명'],es:['Microbios extremofilos','Vida en presion extrema'],fr:['Microbes extremophiles','Vie sous pression extreme']}
    ],
    landmarks:[

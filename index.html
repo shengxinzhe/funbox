@@ -286,12 +286,38 @@ function applyLang() {
 function subscribe(e) {
   e.preventDefault();
   var email = document.getElementById('emailInput').value;
-  // Store locally (replace with real service like Buttondown/Mailchimp in production)
-  var subs = JSON.parse(localStorage.getItem('funbox_subs') || '[]');
-  if (subs.indexOf(email) === -1) subs.push(email);
-  localStorage.setItem('funbox_subs', JSON.stringify(subs));
-  document.getElementById('subMsg').style.display = 'block';
-  document.getElementById('emailInput').value = '';
+  var msg = document.getElementById('subMsg');
+  var btn = e.target.querySelector('button');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  fetch('/api/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      msg.style.display = 'block';
+      document.getElementById('emailInput').value = '';
+    } else {
+      msg.textContent = 'Error';
+      msg.style.display = 'block';
+    }
+  })
+  .catch(function() {
+    // Fallback: store locally if API unavailable
+    var subs = JSON.parse(localStorage.getItem('funbox_subs') || '[]');
+    if (subs.indexOf(email) === -1) subs.push(email);
+    localStorage.setItem('funbox_subs', JSON.stringify(subs));
+    msg.style.display = 'block';
+    document.getElementById('emailInput').value = '';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = I18N[currentLang].nl_btn;
+  });
   return false;
 }
 

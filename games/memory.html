@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Memory Matrix - FunBox</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff;--correct:#27ae60;--wrong:#e74c3c}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 32px}
+.logo{font-size:20px;font-weight:800}.logo span{color:var(--accent)}
+.back{color:var(--text2);font-size:14px}.back:hover{color:var(--text)}
+.lang-sw{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:12px;z-index:10}
+
+.game{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:20px}
+.info{text-align:center}
+.info h2{font-size:24px;font-weight:700;margin-bottom:4px}
+.level-display{font-size:48px;font-weight:800;color:var(--accent)}
+.sub-info{color:var(--text2);font-size:14px;margin-top:4px}
+
+.grid{display:grid;gap:6px}
+.cell{background:rgba(255,255,255,.06);border-radius:8px;cursor:pointer;transition:.2s;aspect-ratio:1}
+.cell.flash{background:var(--accent)}
+.cell.selected{background:var(--accent);opacity:.8}
+.cell.correct{background:var(--correct)}
+.cell.wrong{background:var(--wrong)}
+.cell:hover{background:rgba(255,255,255,.12)}
+.cell.flash:hover,.cell.selected:hover,.cell.correct:hover,.cell.wrong:hover{opacity:1}
+
+.btn{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:16px;font-weight:600;cursor:pointer;transition:.2s}
+.btn:hover{background:#5b54e6;transform:scale(1.03)}
+.msg{font-size:20px;font-weight:600;text-align:center;min-height:28px}
+.msg.success{color:var(--correct)}
+.msg.fail{color:var(--wrong)}
+.score{color:var(--text2);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+<header class="header">
+  <a href="../index.html" class="logo">Fun<span>Box</span></a>
+  <a href="../index.html" class="back" data-i18n="back">&larr; 返回</a>
+</header>
+<button class="lang-sw" onclick="cycleLang()" id="langBtn">中文</button>
+
+<div class="game">
+  <div class="info">
+    <h2 data-i18n="title">记忆矩阵</h2>
+    <div class="level-display" id="levelNum">3</div>
+    <div class="sub-info"><span data-i18n="level">关卡</span> <span id="levelLabel">3</span></div>
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="grid" id="grid" style="width:min(80vw,360px);grid-template-columns:repeat(3,1fr)"></div>
+  <button class="btn" id="startBtn" onclick="startRound()" data-i18n="start">开始</button>
+  <div class="score" id="score"></div>
+</div>
+
+<script>
+var I18N={
+  zh:{title:'记忆矩阵',level:'关卡',start:'开始',memorize:'记住这些方块...',your_turn:'轮到你了！',correct:'正确！',wrong:'错误！正确位置已显示',next:'下一关',retry:'重试',best_score:'最高关卡',back:'← 返回',lang:'中文'},
+  en:{title:'Memory Matrix',level:'Level',start:'Start',memorize:'Memorize the tiles...',your_turn:'Your turn!',correct:'Correct!',wrong:'Wrong! Correct tiles shown',next:'Next Level',retry:'Retry',best_score:'Best Level',back:'← Back',lang:'English'},
+  ja:{title:'記憶マトリクス',level:'レベル',start:'スタート',memorize:'タイルを覚えて...',your_turn:'あなたの番！',correct:'正解！',wrong:'不正解！正しい位置を表示',next:'次のレベル',retry:'リトライ',best_score:'最高レベル',back:'← 戻る',lang:'日本語'},
+  ko:{title:'기억력 매트릭스',level:'레벨',start:'시작',memorize:'타일을 기억하세요...',your_turn:'당신 차례!',correct:'정답!',wrong:'오답! 정답 표시됨',next:'다음 레벨',retry:'다시 시도',best_score:'최고 레벨',back:'← 돌아가기',lang:'한국어'},
+  es:{title:'Matriz de Memoria',level:'Nivel',start:'Empezar',memorize:'Memoriza las casillas...',your_turn:'Tu turno!',correct:'Correcto!',wrong:'Incorrecto! Se muestran las correctas',next:'Siguiente Nivel',retry:'Reintentar',best_score:'Mejor Nivel',back:'← Volver',lang:'Espanol'},
+  fr:{title:'Matrice de Memoire',level:'Niveau',start:'Commencer',memorize:'Memorisez les cases...',your_turn:'A vous!',correct:'Correct!',wrong:'Incorrect! Cases correctes affichees',next:'Niveau Suivant',retry:'Reessayer',best_score:'Meilleur Niveau',back:'← Retour',lang:'Francais'}
+};
+var langs=['zh','en','ja','ko','es','fr'];
+var lang=localStorage.getItem('funbox_lang')||'zh';
+var t=function(){return I18N[lang]||I18N.zh};
+function cycleLang(){var i=(langs.indexOf(lang)+1)%langs.length;lang=langs[i];localStorage.setItem('funbox_lang',lang);applyI18n();}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t()[k])el.textContent=t()[k];});document.getElementById('langBtn').textContent=t().lang;updateScore();}
+
+var level=3,bestLevel=parseInt(localStorage.getItem('funbox_memory_best')||'3');
+var gridEl=document.getElementById('grid'),msgEl=document.getElementById('msg'),startBtn=document.getElementById('startBtn');
+var targets=[],selected=[],playing=false,gridSize=3,tileCount=3;
+
+function getParams(){
+  if(level<=4){gridSize=3;tileCount=level;}
+  else if(level<=7){gridSize=4;tileCount=level-1;}
+  else if(level<=11){gridSize=5;tileCount=level-2;}
+  else{gridSize=6;tileCount=Math.min(level-3,18);}
+}
+
+function buildGrid(){
+  getParams();
+  gridEl.style.gridTemplateColumns='repeat('+gridSize+',1fr)';
+  gridEl.innerHTML='';
+  for(var i=0;i<gridSize*gridSize;i++){
+    var cell=document.createElement('div');
+    cell.className='cell';
+    cell.setAttribute('data-idx',i);
+    cell.addEventListener('click',handleCellClick);
+    gridEl.appendChild(cell);
+  }
+}
+
+function startRound(){
+  playing=false;
+  selected=[];
+  targets=[];
+  document.getElementById('levelNum').textContent=level;
+  document.getElementById('levelLabel').textContent=level;
+  buildGrid();
+  startBtn.style.display='none';
+  msgEl.textContent=t().memorize;
+  msgEl.className='msg';
+
+  var cells=[];
+  for(var i=0;i<gridSize*gridSize;i++)cells.push(i);
+  for(var i=cells.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=cells[i];cells[i]=cells[j];cells[j]=tmp;}
+  targets=cells.slice(0,tileCount);
+
+  targets.forEach(function(idx){
+    gridEl.children[idx].classList.add('flash');
+  });
+
+  var showTime=Math.max(800,2000-level*80);
+  setTimeout(function(){
+    targets.forEach(function(idx){gridEl.children[idx].classList.remove('flash');});
+    msgEl.textContent=t().your_turn;
+    playing=true;
+  },showTime);
+}
+
+function handleCellClick(e){
+  if(!playing)return;
+  var idx=parseInt(e.target.getAttribute('data-idx'));
+  if(selected.indexOf(idx)!==-1)return;
+  selected.push(idx);
+
+  if(targets.indexOf(idx)!==-1){
+    e.target.classList.add('selected');
+    if(selected.filter(function(s){return targets.indexOf(s)!==-1}).length===targets.length){
+      playing=false;
+      targets.forEach(function(i){gridEl.children[i].classList.add('correct');});
+      msgEl.textContent=t().correct;
+      msgEl.className='msg success';
+      level++;
+      if(level>bestLevel){bestLevel=level;localStorage.setItem('funbox_memory_best',bestLevel);}
+      updateScore();
+      startBtn.textContent=t().next;
+      startBtn.style.display='inline-block';
+    }
+  }else{
+    e.target.classList.add('wrong');
+    playing=false;
+    targets.forEach(function(i){gridEl.children[i].classList.add('correct');});
+    msgEl.textContent=t().wrong;
+    msgEl.className='msg fail';
+    level=3;
+    startBtn.textContent=t().retry;
+    startBtn.style.display='inline-block';
+  }
+}
+
+function updateScore(){
+  document.getElementById('score').textContent=t().best_score+': '+bestLevel;
+}
+
+applyI18n();
+buildGrid();
+</script>
+</body>
+</html>

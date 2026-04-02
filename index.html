@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FunBox - 有趣的小实验</title>
+<meta name="description" content="免费的浏览器小游戏和互动实验，无需注册，即开即玩。">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#14141f;--card-hover:#1a1a2e;--accent:#6c63ff;--accent2:#ff6584;--text:#e8e8f0;--text2:#8888a0;--radius:16px}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;padding:24px 40px;max-width:1200px;margin:0 auto}
+.logo{font-size:28px;font-weight:800;letter-spacing:-1px}
+.logo span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:16px}
+.lang-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:.2s}
+.lang-btn:hover,.lang-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lang-menu{position:relative}
+.lang-dropdown{display:none;position:absolute;right:0;top:110%;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px;min-width:140px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.lang-dropdown.show{display:block}
+.lang-opt{padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;transition:.15s;white-space:nowrap}
+.lang-opt:hover{background:rgba(255,255,255,.08)}
+.lang-opt.active{color:var(--accent)}
+
+/* Hero */
+.hero{text-align:center;padding:60px 20px 40px}
+.hero h1{font-size:clamp(36px,6vw,64px);font-weight:800;line-height:1.1;margin-bottom:16px}
+.hero h1 .highlight{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--text2);font-size:18px;max-width:500px;margin:0 auto}
+
+/* Game Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;padding:40px;max-width:1200px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--radius);overflow:hidden;transition:.3s;cursor:pointer;border:1px solid rgba(255,255,255,.04)}
+.card:hover{transform:translateY(-6px);border-color:rgba(108,99,255,.3);box-shadow:0 12px 40px rgba(108,99,255,.15)}
+.card-visual{height:180px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden}
+.card-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 60%,var(--card))}
+.card-body{padding:20px}
+.card-body h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.card-body p{color:var(--text2);font-size:14px;line-height:1.5}
+.card-tag{display:inline-block;background:rgba(108,99,255,.15);color:var(--accent);font-size:11px;padding:3px 10px;border-radius:20px;margin-top:12px;font-weight:600}
+
+/* Card visual themes */
+.v-reaction{background:linear-gradient(135deg,#1a1a3e,#2d1a3e)}
+.v-life{background:linear-gradient(135deg,#1a2a1a,#1a3a2a)}
+.v-memory{background:linear-gradient(135deg,#2a1a1a,#3a2a1a)}
+.v-typing{background:linear-gradient(135deg,#1a2a3a,#1a1a3e)}
+
+/* Newsletter */
+.newsletter{text-align:center;padding:80px 20px;max-width:560px;margin:0 auto}
+.newsletter h2{font-size:28px;font-weight:700;margin-bottom:12px}
+.newsletter p{color:var(--text2);margin-bottom:24px;font-size:15px}
+.sub-form{display:flex;gap:10px;max-width:440px;margin:0 auto}
+.sub-form input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;color:var(--text);font-size:15px;outline:none;transition:.2s}
+.sub-form input:focus{border-color:var(--accent)}
+.sub-form button{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.sub-form button:hover{background:#5b54e6;transform:scale(1.02)}
+.sub-msg{margin-top:12px;font-size:13px;color:var(--accent);display:none}
+
+/* Footer */
+.footer{text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;border-top:1px solid rgba(255,255,255,.05)}
+
+/* Mobile */
+@media(max-width:640px){
+  .header{padding:16px 20px}
+  .grid{padding:20px;gap:16px;grid-template-columns:1fr}
+  .sub-form{flex-direction:column}
+  .sub-form button{width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">Fun<span>Box</span></div>
+  <div class="header-right">
+    <div class="lang-menu">
+      <button class="lang-btn" onclick="toggleLang()" id="langBtn">中文</button>
+      <div class="lang-dropdown" id="langDrop">
+        <div class="lang-opt active" onclick="setLang('zh')">中文</div>
+        <div class="lang-opt" onclick="setLang('en')">English</div>
+        <div class="lang-opt" onclick="setLang('ja')">日本語</div>
+        <div class="lang-opt" onclick="setLang('ko')">한국어</div>
+        <div class="lang-opt" onclick="setLang('es')">Español</div>
+        <div class="lang-opt" onclick="setLang('fr')">Français</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1 data-i18n="hero_title"><span class="highlight">有趣的</span>小实验</h1>
+  <p data-i18n="hero_desc">免费的浏览器小游戏和互动实验，无需注册，即开即玩</p>
+</section>
+
+<section class="grid" id="gameGrid">
+  <a class="card" href="games/reaction.html">
+    <div class="card-visual v-reaction">⚡</div>
+    <div class="card-body">
+      <h3 data-i18n="g1_title">反应速度测试</h3>
+      <p data-i18n="g1_desc">你的反应有多快？点击变色的瞬间测量你的毫秒级反应时间</p>
+      <span class="card-tag" data-i18n="tag_test">测试</span>
+    </div>
+  </a>
+  <a class="card" href="games/life-weeks.html">
+    <div class="card-visual v-life">📅</div>
+    <div class="card-body">
+      <h3 data-i18n="g2_title">你的一生（周）</h3>
+      <p data-i18n="g2_desc">把你的一生画成格子，每个格子是一周。你已经用掉了多少？</p>
+      <span class="card-tag" data-i18n="tag_viz">可视化</span>
+    </div>
+  </a>
+  <a class="card" href="games/memory.html">
+    <div class="card-visual v-memory">🧠</div>
+    <div class="card-body">
+      <h3 data-i18n="g3_title">记忆矩阵</h3>
+      <p data-i18n="g3_desc">记住闪烁的方块位置，挑战你的短期记忆极限</p>
+      <span class="card-tag" data-i18n="tag_game">游戏</span>
+    </div>
+  </a>
+  <a class="card" href="games/typing.html">
+    <div class="card-visual v-typing">⌨️</div>
+    <div class="card-body">
+      <h3 data-i18n="g4_title">打字竞速</h3>
+      <p data-i18n="g4_desc">测测你的打字速度，支持中英文，和全球玩家比一比</p>
+      <span class="card-tag" data-i18n="tag_test">测试</span>
+    </div>
+  </a>
+</section>
+
+<section class="newsletter">
+  <h2 data-i18n="nl_title">新游戏上线时通知我</h2>
+  <p data-i18n="nl_desc">订阅邮件，第一时间玩到新实验。我们不会发垃圾邮件。</p>
+  <form class="sub-form" onsubmit="return subscribe(event)">
+    <input type="email" id="emailInput" data-i18n-placeholder="nl_placeholder" placeholder="你的邮箱" required>
+    <button type="submit" data-i18n="nl_btn">订阅</button>
+  </form>
+  <div class="sub-msg" id="subMsg" data-i18n="nl_success">订阅成功！感谢你的关注。</div>
+</section>
+
+<footer class="footer">
+  <p>FunBox &copy; 2025 &mdash; <span data-i18n="footer">用好奇心驱动的免费小实验</span></p>
+</footer>
+
+<script>
+var I18N = {
+  zh: {
+    hero_title: '<span class="highlight">有趣的</span>小实验',
+    hero_desc: '免费的浏览器小游戏和互动实验，无需注册，即开即玩',
+    g1_title: '反应速度测试', g1_desc: '你的反应有多快？点击变色的瞬间测量你的毫秒级反应时间',
+    g2_title: '你的一生（周）', g2_desc: '把你的一生画成格子，每个格子是一周。你已经用掉了多少？',
+    g3_title: '记忆矩阵', g3_desc: '记住闪烁的方块位置，挑战你的短期记忆极限',
+    g4_title: '打字竞速', g4_desc: '测测你的打字速度，支持中英文，和全球玩家比一比',
+    tag_test: '测试', tag_viz: '可视化', tag_game: '游戏',
+    nl_title: '新游戏上线时通知我', nl_desc: '订阅邮件，第一时间玩到新实验。我们不会发垃圾邮件。',
+    nl_placeholder: '你的邮箱', nl_btn: '订阅', nl_success: '订阅成功！感谢你的关注。',
+    footer: '用好奇心驱动的免费小实验', lang_label: '中文'
+  },
+  en: {
+    hero_title: '<span class="highlight">Fun</span> Experiments',
+    hero_desc: 'Free browser games and interactive experiments. No signup, just play.',
+    g1_title: 'Reaction Test', g1_desc: 'How fast are you? Measure your reaction time in milliseconds.',
+    g2_title: 'Your Life in Weeks', g2_desc: 'Visualize your entire life as a grid of weeks. How many have you used?',
+    g3_title: 'Memory Matrix', g3_desc: 'Remember the flashing tiles and push your short-term memory to the limit.',
+    g4_title: 'Typing Race', g4_desc: 'Test your typing speed in multiple languages and compare with others.',
+    tag_test: 'Test', tag_viz: 'Visual', tag_game: 'Game',
+    nl_title: 'Get notified for new games', nl_desc: 'Subscribe and be the first to play new experiments. No spam.',
+    nl_placeholder: 'Your email', nl_btn: 'Subscribe', nl_success: 'Subscribed! Thanks for joining.',
+    footer: 'Free experiments powered by curiosity', lang_label: 'English'
+  },
+  ja: {
+    hero_title: '<span class="highlight">楽しい</span>実験',
+    hero_desc: '無料のブラウザゲームとインタラクティブな実験。登録不要、すぐ遊べる。',
+    g1_title: '反応速度テスト', g1_desc: 'あなたの反応速度は？ミリ秒単位で測定しよう',
+    g2_title: '人生を週で見る', g2_desc: '人生をマス目に。1マスが1週間。もうどれだけ使った？',
+    g3_title: '記憶マトリクス', g3_desc: '光るタイルの位置を覚えて、短期記憶の限界に挑戦',
+    g4_title: 'タイピング競走', g4_desc: 'タイピング速度を測定。多言語対応、世界中のプレイヤーと比較',
+    tag_test: 'テスト', tag_viz: '可視化', tag_game: 'ゲーム',
+    nl_title: '新しいゲームの通知を受け取る', nl_desc: 'メール登録で新しい実験をいち早く体験。スパムは送りません。',
+    nl_placeholder: 'メールアドレス', nl_btn: '登録', nl_success: '登録完了！ありがとうございます。',
+    footer: '好奇心で動く無料の実験', lang_label: '日本語'
+  },
+  ko: {
+    hero_title: '<span class="highlight">재미있는</span> 실험',
+    hero_desc: '무료 브라우저 게임과 인터랙티브 실험. 가입 없이 바로 플레이.',
+    g1_title: '반응속도 테스트', g1_desc: '당신의 반응속도는? 밀리초 단위로 측정해보세요',
+    g2_title: '당신의 인생 (주 단위)', g2_desc: '인생을 격자로 시각화. 한 칸이 일주일. 얼마나 사용했나요?',
+    g3_title: '기억력 매트릭스', g3_desc: '깜박이는 타일 위치를 기억하고 단기 기억의 한계에 도전',
+    g4_title: '타이핑 레이스', g4_desc: '타이핑 속도를 측정하세요. 다국어 지원, 전 세계 플레이어와 비교',
+    tag_test: '테스트', tag_viz: '시각화', tag_game: '게임',
+    nl_title: '새 게임 알림 받기', nl_desc: '이메일 구독으로 새로운 실험을 가장 먼저 체험하세요.',
+    nl_placeholder: '이메일 주소', nl_btn: '구독', nl_success: '구독 완료! 감사합니다.',
+    footer: '호기심으로 만드는 무료 실험', lang_label: '한국어'
+  },
+  es: {
+    hero_title: '<span class="highlight">Divertidos</span> Experimentos',
+    hero_desc: 'Juegos de navegador gratuitos y experimentos interactivos. Sin registro.',
+    g1_title: 'Test de Reaccion', g1_desc: 'Mide tu tiempo de reaccion en milisegundos.',
+    g2_title: 'Tu Vida en Semanas', g2_desc: 'Visualiza tu vida como una cuadricula de semanas.',
+    g3_title: 'Matriz de Memoria', g3_desc: 'Recuerda las casillas que se iluminan y pon a prueba tu memoria.',
+    g4_title: 'Carrera de Escritura', g4_desc: 'Mide tu velocidad de escritura y comparate con otros.',
+    tag_test: 'Test', tag_viz: 'Visual', tag_game: 'Juego',
+    nl_title: 'Notificarme de nuevos juegos', nl_desc: 'Suscribete para ser el primero en jugar. Sin spam.',
+    nl_placeholder: 'Tu email', nl_btn: 'Suscribir', nl_success: 'Suscrito! Gracias.',
+    footer: 'Experimentos gratuitos impulsados por la curiosidad', lang_label: 'Espanol'
+  },
+  fr: {
+    hero_title: '<span class="highlight">Amusantes</span> Experiences',
+    hero_desc: 'Jeux de navigateur gratuits et experiences interactives. Sans inscription.',
+    g1_title: 'Test de Reaction', g1_desc: 'Mesurez votre temps de reaction en millisecondes.',
+    g2_title: 'Votre Vie en Semaines', g2_desc: 'Visualisez votre vie sous forme de grille de semaines.',
+    g3_title: 'Matrice de Memoire', g3_desc: 'Memorisez les cases qui clignotent et testez votre memoire.',
+    g4_title: 'Course de Frappe', g4_desc: 'Mesurez votre vitesse de frappe et comparez-vous aux autres.',
+    tag_test: 'Test', tag_viz: 'Visuel', tag_game: 'Jeu',
+    nl_title: 'Me notifier des nouveaux jeux', nl_desc: 'Abonnez-vous pour jouer en premier. Pas de spam.',
+    nl_placeholder: 'Votre email', nl_btn: "S'abonner", nl_success: 'Abonne! Merci.',
+    footer: 'Experiences gratuites animees par la curiosite', lang_label: 'Francais'
+  }
+};
+
+var currentLang = localStorage.getItem('funbox_lang') || 'zh';
+
+function toggleLang() {
+  document.getElementById('langDrop').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.lang-menu')) document.getElementById('langDrop').classList.remove('show');
+});
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('funbox_lang', lang);
+  applyLang();
+  document.getElementById('langDrop').classList.remove('show');
+}
+
+function applyLang() {
+  var t = I18N[currentLang] || I18N.zh;
+  document.getElementById('langBtn').textContent = t.lang_label;
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (t[key]) el.innerHTML = t[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-placeholder');
+    if (t[key]) el.placeholder = t[key];
+  });
+  document.querySelectorAll('.lang-opt').forEach(function(el) {
+    el.classList.toggle('active', el.textContent.trim() === t.lang_label);
+  });
+  document.documentElement.lang = currentLang;
+}
+
+function subscribe(e) {
+  e.preventDefault();
+  var email = document.getElementById('emailInput').value;
+  // Store locally (replace with real service like Buttondown/Mailchimp in production)
+  var subs = JSON.parse(localStorage.getItem('funbox_subs') || '[]');
+  if (subs.indexOf(email) === -1) subs.push(email);
+  localStorage.setItem('funbox_subs', JSON.stringify(subs));
+  document.getElementById('subMsg').style.display = 'block';
+  document.getElementById('emailInput').value = '';
+  return false;
+}
+
+applyLang();
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reaction Test - FunBox</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 32px}
+.logo{font-size:20px;font-weight:800}.logo span{color:var(--accent)}
+.back{color:var(--text2);font-size:14px}
+.back:hover{color:var(--text)}
+
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background .15s}
+.game-area.wait{background:#c0392b}
+.game-area.ready{background:#c0392b}
+.game-area.go{background:#27ae60}
+.game-area.result{background:var(--bg)}
+
+.msg{font-size:clamp(24px,5vw,48px);font-weight:700;text-align:center;line-height:1.4}
+.sub-msg{font-size:18px;color:rgba(255,255,255,.7);margin-top:12px;text-align:center}
+.time{font-size:clamp(48px,10vw,96px);font-weight:800;text-align:center}
+.time small{font-size:.4em;font-weight:400;opacity:.7}
+.history{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.history-item{background:rgba(255,255,255,.08);padding:8px 16px;border-radius:10px;font-size:14px;font-weight:600}
+.best{color:#27ae60}
+.stats{margin-top:24px;font-size:15px;color:var(--text2);text-align:center}
+
+.lang-sw{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:12px;z-index:10}
+</style>
+</head>
+<body>
+<header class="header">
+  <a href="../index.html" class="logo">Fun<span>Box</span></a>
+  <a href="../index.html" class="back" data-i18n="back">&larr; 返回</a>
+</header>
+<button class="lang-sw" onclick="cycleLang()" id="langBtn">中文</button>
+
+<div class="game-area wait" id="area" onclick="handleClick()">
+  <div class="msg" id="msg" data-i18n="click_start">点击任意位置开始</div>
+  <div class="sub-msg" id="subMsg"></div>
+  <div class="time" id="timeDisplay" style="display:none"></div>
+  <div class="history" id="history"></div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<script>
+var I18N={
+  zh:{click_start:'点击任意位置开始',wait:'等待绿色...',too_early:'太早了！点击重试',click_now:'点击！',ms:'毫秒',avg:'平均',best:'最佳',try_again:'点击重试',back:'← 返回',lang:'中文'},
+  en:{click_start:'Click anywhere to start',wait:'Wait for green...',too_early:'Too early! Click to retry',click_now:'Click!',ms:'ms',avg:'Average',best:'Best',try_again:'Click to try again',back:'← Back',lang:'English'},
+  ja:{click_start:'どこかをクリックして開始',wait:'緑色を待って...',too_early:'早すぎ！クリックしてリトライ',click_now:'クリック！',ms:'ミリ秒',avg:'平均',best:'最高',try_again:'クリックしてリトライ',back:'← 戻る',lang:'日本語'},
+  ko:{click_start:'아무 곳이나 클릭하여 시작',wait:'초록색을 기다려...',too_early:'너무 빨라요! 클릭하여 다시',click_now:'클릭!',ms:'ms',avg:'평균',best:'최고',try_again:'클릭하여 다시 시도',back:'← 돌아가기',lang:'한국어'},
+  es:{click_start:'Haz clic para empezar',wait:'Espera al verde...',too_early:'Muy pronto! Clic para reintentar',click_now:'Clic!',ms:'ms',avg:'Promedio',best:'Mejor',try_again:'Clic para reintentar',back:'← Volver',lang:'Espanol'},
+  fr:{click_start:'Cliquez pour commencer',wait:'Attendez le vert...',too_early:'Trop tot! Cliquez pour reessayer',click_now:'Cliquez!',ms:'ms',avg:'Moyenne',best:'Meilleur',try_again:'Cliquez pour reessayer',back:'← Retour',lang:'Francais'}
+};
+var langs=['zh','en','ja','ko','es','fr'];
+var lang=localStorage.getItem('funbox_lang')||'zh';
+var t=function(){return I18N[lang]||I18N.zh};
+
+function cycleLang(){
+  var i=(langs.indexOf(lang)+1)%langs.length;
+  lang=langs[i];localStorage.setItem('funbox_lang',lang);
+  document.getElementById('langBtn').textContent=t().lang;
+  applyI18n();
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k=el.getAttribute('data-i18n');if(t()[k])el.textContent=t()[k];
+  });
+  document.getElementById('langBtn').textContent=t().lang;
+}
+
+var state='idle',timer=null,startTime=0,results=[];
+var area=document.getElementById('area'),msg=document.getElementById('msg'),subMsg=document.getElementById('subMsg'),timeDisplay=document.getElementById('timeDisplay');
+
+function handleClick(){
+  if(state==='idle'){
+    startRound();
+  }else if(state==='waiting'){
+    clearTimeout(timer);
+    state='idle';
+    area.className='game-area wait';
+    msg.textContent=t().too_early;
+    subMsg.textContent='';
+    timeDisplay.style.display='none';
+  }else if(state==='go'){
+    var elapsed=Date.now()-startTime;
+    results.push(elapsed);
+    state='idle';
+    area.className='game-area result';
+    msg.textContent='';
+    subMsg.textContent=t().try_again;
+    timeDisplay.style.display='block';
+    timeDisplay.innerHTML=elapsed+'<small>'+t().ms+'</small>';
+    renderHistory();
+  }
+}
+
+function startRound(){
+  state='waiting';
+  area.className='game-area ready';
+  msg.textContent=t().wait;
+  subMsg.textContent='';
+  timeDisplay.style.display='none';
+  var delay=1500+Math.random()*3500;
+  timer=setTimeout(function(){
+    state='go';
+    area.className='game-area go';
+    msg.textContent=t().click_now;
+    startTime=Date.now();
+  },delay);
+}
+
+function renderHistory(){
+  var h=document.getElementById('history');
+  var s=document.getElementById('stats');
+  h.innerHTML='';
+  var bestVal=Math.min.apply(null,results);
+  results.forEach(function(r){
+    var div=document.createElement('div');
+    div.className='history-item'+(r===bestVal?' best':'');
+    div.textContent=r+t().ms;
+    h.appendChild(div);
+  });
+  if(results.length>1){
+    var avg=Math.round(results.reduce(function(a,b){return a+b},0)/results.length);
+    s.textContent=t().avg+': '+avg+t().ms+' | '+t().best+': '+bestVal+t().ms;
+  }
+}
+applyI18n();
+</script>
+</body>
+</html>

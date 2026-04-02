@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Typing Race - FunBox</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff;--correct:#27ae60;--wrong:#e74c3c}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 32px}
+.logo{font-size:20px;font-weight:800}.logo span{color:var(--accent)}
+.back{color:var(--text2);font-size:14px}.back:hover{color:var(--text)}
+.lang-sw{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:12px;z-index:10}
+
+.game{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;max-width:700px;margin:0 auto;width:100%}
+.title{font-size:28px;font-weight:800;margin-bottom:4px;text-align:center}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:24px;text-align:center}
+
+.mode-tabs{display:flex;gap:8px;margin-bottom:24px}
+.mode-tab{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:8px 20px;border-radius:20px;cursor:pointer;font-size:14px;transition:.2s}
+.mode-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.text-display{background:rgba(255,255,255,.04);border-radius:16px;padding:24px;font-size:20px;line-height:1.8;margin-bottom:20px;min-height:120px;width:100%;position:relative;letter-spacing:.5px}
+.char{transition:color .05s}
+.char.correct{color:var(--correct)}
+.char.wrong{color:var(--wrong);text-decoration:underline}
+.char.current{background:rgba(108,99,255,.3);border-radius:2px}
+.char.pending{color:var(--text2)}
+
+.input-area{width:100%}
+.input-area textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:16px;border-radius:12px;font-size:18px;font-family:inherit;resize:none;outline:none;height:80px}
+.input-area textarea:focus{border-color:var(--accent)}
+
+.stats-bar{display:flex;gap:24px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-val{font-size:36px;font-weight:800;color:var(--accent)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:2px}
+
+.timer{font-size:48px;font-weight:800;color:var(--accent);text-align:center;margin-bottom:16px;font-variant-numeric:tabular-nums}
+
+.result{display:none;text-align:center}
+.result h2{font-size:28px;margin-bottom:20px}
+.result .btn{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 36px;font-size:16px;font-weight:600;cursor:pointer;margin-top:16px}
+</style>
+</head>
+<body>
+<header class="header">
+  <a href="../index.html" class="logo">Fun<span>Box</span></a>
+  <a href="../index.html" class="back" data-i18n="back">&larr; 返回</a>
+</header>
+<button class="lang-sw" onclick="cycleLang()" id="langBtn">中文</button>
+
+<div class="game">
+  <div class="title" data-i18n="title">打字竞速</div>
+  <div class="subtitle" data-i18n="subtitle">选择语言，开始打字，计时自动启动</div>
+
+  <div class="mode-tabs" id="modeTabs">
+    <div class="mode-tab active" onclick="setMode('en')">English</div>
+    <div class="mode-tab" onclick="setMode('zh')">中文</div>
+    <div class="mode-tab" onclick="setMode('code')">Code</div>
+  </div>
+
+  <div class="timer" id="timer">60</div>
+
+  <div id="playArea">
+    <div class="text-display" id="textDisplay"></div>
+    <div class="input-area">
+      <textarea id="typingInput" data-i18n-placeholder="input_hint" placeholder="在这里开始打字..." autofocus></textarea>
+    </div>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val" id="wpm">0</div><div class="stat-label">WPM</div></div>
+      <div class="stat"><div class="stat-val" id="accuracy">100%</div><div class="stat-label" data-i18n="accuracy">准确率</div></div>
+      <div class="stat"><div class="stat-val" id="chars">0</div><div class="stat-label" data-i18n="chars">字符</div></div>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <h2 data-i18n="times_up">时间到！</h2>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val" id="finalWpm">0</div><div class="stat-label">WPM</div></div>
+      <div class="stat"><div class="stat-val" id="finalAcc">100%</div><div class="stat-label" data-i18n="accuracy2">准确率</div></div>
+      <div class="stat"><div class="stat-val" id="finalChars">0</div><div class="stat-label" data-i18n="chars2">字符</div></div>
+    </div>
+    <button class="btn" onclick="restartGame()" data-i18n="again">再来一次</button>
+  </div>
+</div>
+
+<script>
+var TEXTS={
+  en:[
+    "The quick brown fox jumps over the lazy dog. A journey of a thousand miles begins with a single step. To be or not to be, that is the question.",
+    "In the beginning was the Word, and the Word was with God. All that glitters is not gold. Time flies like an arrow, fruit flies like a banana.",
+    "Science is organized knowledge. Wisdom is organized life. The only way to do great work is to love what you do. Stay hungry, stay foolish.",
+    "Code is like humor. When you have to explain it, it is bad. First, solve the problem. Then, write the code. Simplicity is the soul of efficiency."
+  ],
+  zh:[
+    "天行健，君子以自强不息。地势坤，君子以厚德载物。路漫漫其修远兮，吾将上下而求索。",
+    "千里之行，始于足下。学而时习之，不亦说乎。知之为知之，不知为不知，是知也。",
+    "海内存知己，天涯若比邻。落霞与孤鹜齐飞，秋水共长天一色。",
+    "大江东去，浪淘尽，千古风流人物。人生如梦，一尊还酹江月。"
+  ],
+  code:[
+    "function fibonacci(n) { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); }",
+    "const sum = arr.reduce((acc, val) => acc + val, 0); console.log(sum);",
+    "for (let i = 0; i < arr.length; i++) { if (arr[i] > max) { max = arr[i]; } }",
+    "async function fetchData(url) { const res = await fetch(url); return res.json(); }"
+  ]
+};
+
+var I18N={
+  zh:{title:'打字竞速',subtitle:'选择语言，开始打字，计时自动启动',input_hint:'在这里开始打字...',accuracy:'准确率',chars:'字符',times_up:'时间到！',accuracy2:'准确率',chars2:'字符',again:'再来一次',back:'← 返回',lang:'中文'},
+  en:{title:'Typing Race',subtitle:'Pick a language, start typing, timer starts automatically',input_hint:'Start typing here...',accuracy:'Accuracy',chars:'Chars',times_up:"Time's up!",accuracy2:'Accuracy',chars2:'Chars',again:'Try Again',back:'← Back',lang:'English'},
+  ja:{title:'タイピング競走',subtitle:'言語を選んでタイピング開始',input_hint:'ここに入力...',accuracy:'正確率',chars:'文字',times_up:'タイムアップ！',accuracy2:'正確率',chars2:'文字',again:'もう一回',back:'← 戻る',lang:'日本語'},
+  ko:{title:'타이핑 레이스',subtitle:'언어를 선택하고 타이핑 시작',input_hint:'여기에 입력...',accuracy:'정확도',chars:'문자',times_up:'시간 종료!',accuracy2:'정확도',chars2:'문자',again:'다시 시도',back:'← 돌아가기',lang:'한국어'},
+  es:{title:'Carrera de Escritura',subtitle:'Elige un idioma y empieza a escribir',input_hint:'Escribe aqui...',accuracy:'Precision',chars:'Caracteres',times_up:'Tiempo!',accuracy2:'Precision',chars2:'Caracteres',again:'Otra vez',back:'← Volver',lang:'Espanol'},
+  fr:{title:'Course de Frappe',subtitle:'Choisissez une langue et commencez',input_hint:'Tapez ici...',accuracy:'Precision',chars:'Caracteres',times_up:'Temps ecoule!',accuracy2:'Precision',chars2:'Caracteres',again:'Recommencer',back:'← Retour',lang:'Francais'}
+};
+var langs=['zh','en','ja','ko','es','fr'];
+var uiLang=localStorage.getItem('funbox_lang')||'zh';
+var t=function(){return I18N[uiLang]||I18N.zh};
+function cycleLang(){var i=(langs.indexOf(uiLang)+1)%langs.length;uiLang=langs[i];localStorage.setItem('funbox_lang',uiLang);applyI18n();}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t()[k])el.textContent=t()[k];});document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){var k=el.getAttribute('data-i18n-placeholder');if(t()[k])el.placeholder=t()[k];});document.getElementById('langBtn').textContent=t().lang;}
+
+var mode='en',text='',started=false,timerInterval=null,timeLeft=60,totalCorrect=0,totalTyped=0;
+var textDisplay=document.getElementById('textDisplay'),typingInput=document.getElementById('typingInput');
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode-tab').forEach(function(tab){tab.classList.remove('active');});
+  document.querySelectorAll('.mode-tab').forEach(function(tab,i){
+    if((i===0&&m==='en')||(i===1&&m==='zh')||(i===2&&m==='code'))tab.classList.add('active');
+  });
+  restartGame();
+}
+
+function pickText(){
+  var pool=TEXTS[mode]||TEXTS.en;
+  text=pool[Math.floor(Math.random()*pool.length)];
+}
+
+function renderText(){
+  var html='';
+  var input=typingInput.value;
+  for(var i=0;i<text.length;i++){
+    var cls='pending';
+    if(i<input.length){
+      cls=input[i]===text[i]?'correct':'wrong';
+    }else if(i===input.length){
+      cls='current pending';
+    }
+    var ch=text[i]===' '?'&nbsp;':text[i].replace(/</g,'&lt;');
+    html+='<span class="char '+cls+'">'+ch+'</span>';
+  }
+  textDisplay.innerHTML=html;
+}
+
+function startTimer(){
+  started=true;
+  timeLeft=60;
+  timerInterval=setInterval(function(){
+    timeLeft--;
+    document.getElementById('timer').textContent=timeLeft;
+    if(timeLeft<=0){endGame();}
+  },1000);
+}
+
+function updateStats(){
+  var input=typingInput.value;
+  var correct=0;
+  for(var i=0;i<input.length&&i<text.length;i++){
+    if(input[i]===text[i])correct++;
+  }
+  var elapsed=60-timeLeft||1;
+  var wpm=Math.round((correct/5)/(elapsed/60));
+  var acc=input.length>0?Math.round(correct/input.length*100):100;
+  document.getElementById('wpm').textContent=wpm;
+  document.getElementById('accuracy').textContent=acc+'%';
+  document.getElementById('chars').textContent=input.length;
+  totalCorrect=correct;totalTyped=input.length;
+}
+
+function endGame(){
+  clearInterval(timerInterval);
+  started=false;
+  typingInput.disabled=true;
+  var elapsed=60;
+  var wpm=Math.round((totalCorrect/5)/(elapsed/60));
+  var acc=totalTyped>0?Math.round(totalCorrect/totalTyped*100):100;
+  document.getElementById('finalWpm').textContent=wpm;
+  document.getElementById('finalAcc').textContent=acc+'%';
+  document.getElementById('finalChars').textContent=totalTyped;
+  document.getElementById('playArea').style.display='none';
+  document.getElementById('result').style.display='block';
+}
+
+function restartGame(){
+  clearInterval(timerInterval);
+  started=false;
+  timeLeft=60;
+  totalCorrect=0;totalTyped=0;
+  typingInput.value='';
+  typingInput.disabled=false;
+  document.getElementById('timer').textContent='60';
+  document.getElementById('wpm').textContent='0';
+  document.getElementById('accuracy').textContent='100%';
+  document.getElementById('chars').textContent='0';
+  document.getElementById('playArea').style.display='block';
+  document.getElementById('result').style.display='none';
+  pickText();
+  renderText();
+  typingInput.focus();
+}
+
+typingInput.addEventListener('input',function(){
+  if(!started)startTimer();
+  renderText();
+  updateStats();
+  if(typingInput.value.length>=text.length){
+    pickText();
+    typingInput.value='';
+    renderText();
+  }
+});
+
+applyI18n();
+restartGame();
+</script>
+</body>
+</html>

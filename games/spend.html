@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Spend Bill Gates' Money - FunBox</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff;--green:#27ae60;--card:#14141f}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 32px}
+.logo{font-size:20px;font-weight:800}.logo span{color:var(--accent)}
+.nav-r{display:flex;align-items:center;gap:12px}
+.lang-sw{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:5px 12px;border-radius:16px;cursor:pointer;font-size:12px}
+.back{color:var(--text2);font-size:14px}.back:hover{color:var(--text)}
+
+.money-bar{position:sticky;top:0;z-index:50;background:rgba(10,10,15,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06);padding:16px 20px;text-align:center}
+.money-amount{font-size:clamp(28px,5vw,48px);font-weight:800;color:var(--green);font-variant-numeric:tabular-nums;transition:color .2s}
+.money-amount.low{color:var(--accent)}
+.money-label{font-size:13px;color:var(--text2);margin-top:4px}
+.money-bar .receipt-toggle{margin-top:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:5px 16px;border-radius:16px;cursor:pointer;font-size:12px}
+
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:24px;max-width:1200px;margin:0 auto}
+.item{background:var(--card);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,.04);transition:.2s}
+.item:hover{border-color:rgba(108,99,255,.2)}
+.item-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.item-icon{font-size:48px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border-radius:12px;flex-shrink:0}
+.item-info h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.item-price{color:var(--green);font-weight:700;font-size:15px}
+.item-controls{display:flex;align-items:center;gap:12px}
+.item-btn{width:44px;height:44px;border-radius:12px;border:none;font-size:22px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.buy-btn{background:var(--green);color:#fff}
+.buy-btn:hover{background:#2ecc71;transform:scale(1.05)}
+.buy-btn:disabled{background:#333;color:#555;cursor:not-allowed;transform:none}
+.sell-btn{background:rgba(255,255,255,.08);color:var(--text2)}
+.sell-btn:hover{background:rgba(255,255,255,.15)}
+.sell-btn:disabled{opacity:.3;cursor:not-allowed}
+.item-qty{font-size:20px;font-weight:700;min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+
+.receipt{display:none;max-width:600px;margin:20px auto;padding:24px;background:var(--card);border-radius:16px;border:1px solid rgba(255,255,255,.06)}
+.receipt.show{display:block}
+.receipt h3{font-size:18px;font-weight:700;margin-bottom:16px;text-align:center}
+.receipt-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:14px}
+.receipt-item span:last-child{color:var(--green);font-weight:600}
+.receipt-total{display:flex;justify-content:space-between;padding:12px 0 0;font-size:16px;font-weight:700}
+.receipt-total span:last-child{color:var(--accent)}
+
+@media(max-width:640px){
+  .header{padding:12px 16px}
+  .shop{padding:16px;gap:14px;grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <a href="../index.html" class="logo">Fun<span>Box</span></a>
+  <div class="nav-r">
+    <button class="lang-sw" onclick="cycleLang()" id="langBtn">中文</button>
+    <a href="../index.html" class="back" data-i18n="back">&larr; 返回</a>
+  </div>
+</header>
+
+<div class="money-bar">
+  <div class="money-amount" id="balance">$100,000,000,000</div>
+  <div class="money-label" data-i18n="remaining">比尔·盖茨的剩余财富</div>
+  <button class="receipt-toggle" onclick="toggleReceipt()" data-i18n="show_receipt">查看购物小票</button>
+</div>
+
+<div class="receipt" id="receipt">
+  <h3 data-i18n="receipt_title">购物小票</h3>
+  <div id="receiptItems"></div>
+  <div class="receipt-total">
+    <span data-i18n="total_spent">总花费</span>
+    <span id="totalSpent">$0</span>
+  </div>
+</div>
+
+<div class="shop" id="shop"></div>
+
+<script>
+var TOTAL=100000000000;
+var balance=TOTAL;
+
+var ITEMS=[
+  {icon:'🍔',key:'burger',price:2,zh:'大汉堡',en:'Big Mac',ja:'ビッグマック',ko:'빅맥',es:'Big Mac',fr:'Big Mac'},
+  {icon:'☕',key:'coffee',price:5,zh:'咖啡',en:'Coffee',ja:'コーヒー',ko:'커피',es:'Cafe',fr:'Cafe'},
+  {icon:'📱',key:'phone',price:1200,zh:'iPhone',en:'iPhone',ja:'iPhone',ko:'아이폰',es:'iPhone',fr:'iPhone'},
+  {icon:'👟',key:'shoes',price:250,zh:'名牌球鞋',en:'Designer Sneakers',ja:'ブランドスニーカー',ko:'명품 운동화',es:'Zapatillas',fr:'Baskets'},
+  {icon:'🎮',key:'console',price:500,zh:'游戏机',en:'Game Console',ja:'ゲーム機',ko:'게임기',es:'Consola',fr:'Console'},
+  {icon:'💻',key:'laptop',price:2500,zh:'MacBook Pro',en:'MacBook Pro',ja:'MacBook Pro',ko:'MacBook Pro',es:'MacBook Pro',fr:'MacBook Pro'},
+  {icon:'🚲',key:'bike',price:800,zh:'自行车',en:'Bicycle',ja:'自転車',ko:'자전거',es:'Bicicleta',fr:'Velo'},
+  {icon:'💎',key:'diamond',price:5000,zh:'钻石项链',en:'Diamond Necklace',ja:'ダイヤモンドネックレス',ko:'다이아몬드 목걸이',es:'Collar de diamantes',fr:'Collier diamant'},
+  {icon:'🏍️',key:'motorcycle',price:15000,zh:'哈雷摩托',en:'Harley Davidson',ja:'ハーレー',ko:'할리 데이비슨',es:'Harley Davidson',fr:'Harley Davidson'},
+  {icon:'🎓',key:'tuition',price:50000,zh:'大学四年学费',en:'4-Year Tuition',ja:'大学4年学費',ko:'대학 등록금',es:'Matricula 4 anos',fr:'Frais universitaires'},
+  {icon:'🏠',key:'house',price:500000,zh:'一套房子',en:'A House',ja:'一軒家',ko:'주택',es:'Una casa',fr:'Une maison'},
+  {icon:'🏎️',key:'sportscar',price:250000,zh:'兰博基尼',en:'Lamborghini',ja:'ランボルギーニ',ko:'람보르기니',es:'Lamborghini',fr:'Lamborghini'},
+  {icon:'🚁',key:'helicopter',price:1500000,zh:'直升机',en:'Helicopter',ja:'ヘリコプター',ko:'헬리콥터',es:'Helicoptero',fr:'Helicoptere'},
+  {icon:'🏢',key:'building',price:30000000,zh:'摩天大楼',en:'Skyscraper',ja:'超高層ビル',ko:'초고층 빌딩',es:'Rascacielos',fr:'Gratte-ciel'},
+  {icon:'🚀',key:'rocket',price:200000000,zh:'火箭发射',en:'Rocket Launch',ja:'ロケット打ち上げ',ko:'로켓 발사',es:'Lanzamiento cohete',fr:'Lancement fusee'},
+  {icon:'⚽',key:'team',price:2000000000,zh:'足球俱乐部',en:'Soccer Club',ja:'サッカークラブ',ko:'축구 클럽',es:'Club de futbol',fr:'Club de foot'},
+  {icon:'🏝️',key:'island',price:5000000000,zh:'一座私人岛屿',en:'Private Island',ja:'プライベート島',ko:'개인 섬',es:'Isla privada',fr:'Ile privee'},
+  {icon:'🛳️',key:'cruise',price:1000000000,zh:'超级游轮',en:'Mega Cruise Ship',ja:'メガクルーズ船',ko:'메가 크루즈선',es:'Mega crucero',fr:'Mega paquebot'},
+];
+
+var cart={};
+ITEMS.forEach(function(it){cart[it.key]=0;});
+
+var I18N={
+  zh:{remaining:'比尔·盖茨的剩余财富',show_receipt:'查看购物小票',hide_receipt:'收起小票',receipt_title:'购物小票',total_spent:'总花费',back:'← 返回',lang:'中文',buy:'买',sell:'卖'},
+  en:{remaining:"Bill Gates' remaining wealth",show_receipt:'View Receipt',hide_receipt:'Hide Receipt',receipt_title:'Your Receipt',total_spent:'Total Spent',back:'← Back',lang:'English',buy:'Buy',sell:'Sell'},
+  ja:{remaining:'ビル・ゲイツの残りの資産',show_receipt:'レシートを見る',hide_receipt:'レシートを隠す',receipt_title:'レシート',total_spent:'合計支出',back:'← 戻る',lang:'日本語',buy:'買う',sell:'売る'},
+  ko:{remaining:'빌 게이츠의 남은 재산',show_receipt:'영수증 보기',hide_receipt:'영수증 숨기기',receipt_title:'영수증',total_spent:'총 지출',back:'← 돌아가기',lang:'한국어',buy:'구매',sell:'판매'},
+  es:{remaining:'Riqueza restante de Bill Gates',show_receipt:'Ver Recibo',hide_receipt:'Ocultar Recibo',receipt_title:'Tu Recibo',total_spent:'Total Gastado',back:'← Volver',lang:'Espanol',buy:'Comprar',sell:'Vender'},
+  fr:{remaining:'Fortune restante de Bill Gates',show_receipt:'Voir le ticket',hide_receipt:'Cacher le ticket',receipt_title:'Votre Ticket',total_spent:'Total Depense',back:'← Retour',lang:'Francais',buy:'Acheter',sell:'Vendre'}
+};
+var langs=['zh','en','ja','ko','es','fr'];
+var lang=localStorage.getItem('funbox_lang')||'zh';
+var t=function(){return I18N[lang]||I18N.zh};
+function cycleLang(){var i=(langs.indexOf(lang)+1)%langs.length;lang=langs[i];localStorage.setItem('funbox_lang',lang);renderAll();}
+
+function fmt(n){
+  if(n>=1e9)return '$'+((n/1e9).toFixed(n%1e9===0?0:1))+'B';
+  if(n>=1e6)return '$'+((n/1e6).toFixed(n%1e6===0?0:1))+'M';
+  if(n>=1e3)return '$'+((n/1e3).toFixed(n%1e3===0?0:1))+'K';
+  return '$'+n;
+}
+function fmtFull(n){return '$'+n.toLocaleString();}
+
+function buildShop(){
+  var shop=document.getElementById('shop');
+  shop.innerHTML='';
+  ITEMS.forEach(function(it){
+    var div=document.createElement('div');
+    div.className='item';
+    div.id='item-'+it.key;
+    div.innerHTML='<div class="item-top"><div class="item-icon">'+it.icon+'</div><div class="item-info"><h3>'+
+      (it[lang]||it.en)+'</h3><div class="item-price">'+fmt(it.price)+'</div></div></div>'+
+      '<div class="item-controls"><button class="item-btn sell-btn" onclick="sell(\''+it.key+'\')" disabled>-</button>'+
+      '<div class="item-qty" id="qty-'+it.key+'">0</div>'+
+      '<button class="item-btn buy-btn" id="buy-'+it.key+'" onclick="buy(\''+it.key+'\')">+</button></div>';
+    shop.appendChild(div);
+  });
+}
+
+function buy(key){
+  var it=ITEMS.find(function(i){return i.key===key;});
+  if(balance>=it.price){
+    balance-=it.price;
+    cart[key]++;
+    updateUI();
+  }
+}
+function sell(key){
+  var it=ITEMS.find(function(i){return i.key===key;});
+  if(cart[key]>0){
+    balance+=it.price;
+    cart[key]--;
+    updateUI();
+  }
+}
+
+function updateUI(){
+  var el=document.getElementById('balance');
+  el.textContent=fmtFull(balance);
+  el.className='money-amount'+(balance<TOTAL*0.1?' low':'');
+
+  ITEMS.forEach(function(it){
+    document.getElementById('qty-'+it.key).textContent=cart[it.key];
+    document.getElementById('buy-'+it.key).disabled=balance<it.price;
+    var sellBtn=document.getElementById('item-'+it.key).querySelector('.sell-btn');
+    sellBtn.disabled=cart[it.key]===0;
+  });
+
+  updateReceipt();
+}
+
+function updateReceipt(){
+  var container=document.getElementById('receiptItems');
+  container.innerHTML='';
+  var totalSpent=0;
+  ITEMS.forEach(function(it){
+    if(cart[it.key]>0){
+      var cost=it.price*cart[it.key];
+      totalSpent+=cost;
+      var row=document.createElement('div');
+      row.className='receipt-item';
+      row.innerHTML='<span>'+(it[lang]||it.en)+' x'+cart[it.key]+'</span><span>'+fmtFull(cost)+'</span>';
+      container.appendChild(row);
+    }
+  });
+  document.getElementById('totalSpent').textContent=fmtFull(totalSpent);
+}
+
+function toggleReceipt(){
+  var r=document.getElementById('receipt');
+  var btn=document.querySelector('.receipt-toggle');
+  r.classList.toggle('show');
+  btn.textContent=r.classList.contains('show')?t().hide_receipt:t().show_receipt;
+}
+
+function renderAll(){
+  document.getElementById('langBtn').textContent=t().lang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k=el.getAttribute('data-i18n');if(t()[k])el.textContent=t()[k];
+  });
+  buildShop();
+  updateUI();
+}
+
+renderAll();
+</script>
+</body>
+</html>

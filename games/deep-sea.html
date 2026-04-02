@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Deep Sea - FunBox</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--text:#e8e8f0;--text2:#8888a0;--accent:#6c63ff}
+body{color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+.header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+.logo{font-size:18px;font-weight:800}.logo span{color:var(--accent)}
+.nav-r{display:flex;align-items:center;gap:12px}
+.lang-sw{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:var(--text2);padding:4px 10px;border-radius:12px;cursor:pointer;font-size:11px}
+.back{color:var(--text2);font-size:13px}.back:hover{color:var(--text)}
+
+.depth-indicator{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:90;text-align:right}
+.depth-num{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.depth-label{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+
+.ocean{width:100%;position:relative}
+.zone{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:60px 20px;transition:background .3s}
+
+.zone-title{font-size:clamp(24px,4vw,40px);font-weight:800;opacity:.15;text-transform:uppercase;letter-spacing:4px;margin-bottom:40px;text-align:center}
+
+.creature{display:flex;align-items:center;gap:20px;max-width:560px;width:100%;padding:20px;margin:12px 0;background:rgba(255,255,255,.04);border-radius:16px;border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(4px);opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+.creature.visible{opacity:1;transform:translateY(0)}
+.creature-icon{font-size:48px;flex-shrink:0;width:64px;text-align:center}
+.creature-info h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.creature-info p{font-size:13px;color:rgba(255,255,255,.5);line-height:1.5}
+.creature-depth{font-size:11px;color:var(--accent);font-weight:600;margin-top:6px}
+
+.landmark{text-align:center;padding:30px 20px;margin:20px 0;opacity:0;transform:scale(.9);transition:opacity .6s,transform .6s}
+.landmark.visible{opacity:1;transform:scale(1)}
+.landmark-line{width:1px;height:40px;background:rgba(255,255,255,.15);margin:0 auto 12px}
+.landmark-text{font-size:13px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:1px}
+.landmark-depth{font-size:18px;font-weight:800;margin-top:4px}
+
+.bottom{text-align:center;padding:80px 20px 120px;max-width:500px;margin:0 auto}
+.bottom h2{font-size:28px;font-weight:800;margin-bottom:12px}
+.bottom p{color:rgba(255,255,255,.4);font-size:15px;line-height:1.6}
+
+.bubbles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:hidden}
+.bubble{position:absolute;bottom:-20px;background:rgba(255,255,255,.04);border-radius:50%;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-110vh) scale(.5);opacity:0}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="../index.html" class="logo">Fun<span>Box</span></a>
+  <div class="nav-r">
+    <button class="lang-sw" onclick="cycleLang()" id="langBtn">中文</button>
+    <a href="../index.html" class="back" data-i18n="back">&larr; 返回</a>
+  </div>
+</header>
+
+<div class="depth-indicator">
+  <div class="depth-num" id="depthNum">0m</div>
+  <div class="depth-label" data-i18n="depth">深度</div>
+</div>
+
+<div class="bubbles" id="bubbles"></div>
+
+<div class="ocean" id="ocean"></div>
+
+<script>
+var I18N={
+  zh:{depth:'深度',back:'← 返回',lang:'中文',bottom_title:'你已到达海底最深处',bottom_desc:'马里亚纳海沟挑战者深渊 — 地球上最深的地方。这里的水压是海面的1000倍。人类只来过这里3次。',scroll_hint:'向下滚动，开始下潜...'},
+  en:{depth:'Depth',back:'← Back',lang:'English',bottom_title:"You've reached the bottom",bottom_desc:"Challenger Deep, Mariana Trench — the deepest point on Earth. Water pressure here is 1000x the surface. Humans have only been here 3 times.",scroll_hint:'Scroll down to dive...'},
+  ja:{depth:'深さ',back:'← 戻る',lang:'日本語',bottom_title:'海底最深部に到達',bottom_desc:'マリアナ海溝チャレンジャー海淵 — 地球で最も深い場所。水圧は海面の1000倍。人類はわずか3回しか到達していません。',scroll_hint:'下にスクロールして潜水...'},
+  ko:{depth:'깊이',back:'← 돌아가기',lang:'한국어',bottom_title:'해저 가장 깊은 곳에 도달',bottom_desc:'마리아나 해구 챌린저 해연 — 지구에서 가장 깊은 곳. 수압은 해면의 1000배. 인류는 단 3번만 방문했습니다.',scroll_hint:'아래로 스크롤하여 잠수...'},
+  es:{depth:'Profundidad',back:'← Volver',lang:'Espanol',bottom_title:'Has llegado al fondo',bottom_desc:'Fosa de las Marianas — el punto mas profundo de la Tierra. La presion aqui es 1000 veces la de la superficie.',scroll_hint:'Desplazate para bucear...'},
+  fr:{depth:'Profondeur',back:'← Retour',lang:'Francais',bottom_title:'Vous avez atteint le fond',bottom_desc:'Fosse des Mariannes — le point le plus profond de la Terre. La pression est 1000 fois celle de la surface.',scroll_hint:'Faites defiler pour plonger...'}
+};
+var langs=['zh','en','ja','ko','es','fr'];
+var lang=localStorage.getItem('funbox_lang')||'zh';
+var t=function(){return I18N[lang]||I18N.zh};
+function cycleLang(){var i=(langs.indexOf(lang)+1)%langs.length;lang=langs[i];localStorage.setItem('funbox_lang',lang);document.getElementById('langBtn').textContent=t().lang;document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(t()[k])el.textContent=t()[k];});buildOcean();}
+
+var ZONES=[
+  {name:{zh:'海面',en:'Surface',ja:'海面',ko:'해면',es:'Superficie',fr:'Surface'},
+   from:0,to:200,color1:'#0077be',color2:'#005a8e',
+   creatures:[
+     {icon:'🐬',depth:10,zh:['海豚','群居动物，能跳出水面3米高'],en:['Dolphin','Social creatures that can leap 3m above water'],ja:['イルカ','水面3m上まで跳べる社会的動物'],ko:['돌고래','수면 3m 위로 뛰어오르는 사회적 동물'],es:['Delfin','Animales sociales que saltan 3m'],fr:['Dauphin','Animaux sociaux sautant a 3m']},
+     {icon:'🐢',depth:40,zh:['海龟','能屏住呼吸长达7小时'],en:['Sea Turtle','Can hold breath for up to 7 hours'],ja:['ウミガメ','最大7時間息を止められる'],ko:['바다거북','최대 7시간 숨을 참을 수 있음'],es:['Tortuga marina','Aguanta 7 horas sin respirar'],fr:['Tortue de mer','Peut retenir son souffle 7h']},
+     {icon:'🦈',depth:100,zh:['大白鲨','海洋顶级猎食者，时速56公里'],en:['Great White Shark','Apex predator, swims at 56 km/h'],ja:['ホホジロザメ','時速56kmで泳ぐ頂点捕食者'],ko:['백상아리','시속 56km의 최상위 포식자'],es:['Gran tiburon blanco','Depredador apex, 56 km/h'],fr:['Grand requin blanc','Predateur apex, 56 km/h']},
+     {icon:'🐙',depth:150,zh:['章鱼','拥有3颗心脏和蓝色血液'],en:['Octopus','Has 3 hearts and blue blood'],ja:['タコ','心臓3つと青い血を持つ'],ko:['문어','심장 3개와 파란 피를 가짐'],es:['Pulpo','Tiene 3 corazones y sangre azul'],fr:['Pieuvre','3 coeurs et sang bleu']}
+   ],
+   landmarks:[
+     {depth:40,zh:'奥运会游泳池深度',en:'Olympic pool depth',ja:'オリンピックプールの深さ',ko:'올림픽 수영장 깊이',es:'Profundidad piscina olimpica',fr:'Profondeur piscine olympique'},
+     {depth:130,zh:'休闲潜水极限',en:'Recreational dive limit',ja:'レクリエーションダイビング限界',ko:'레크리에이션 다이빙 한계',es:'Limite buceo recreativo',fr:'Limite plongee loisir'}
+   ]},
+  {name:{zh:'中层带',en:'Twilight Zone',ja:'薄光層',ko:'박광층',es:'Zona crepuscular',fr:'Zone crepusculaire'},
+   from:200,to:1000,color1:'#005a8e',color2:'#002244',
+   creatures:[
+     {icon:'🦑',depth:300,zh:['巨型鱿鱼','眼睛有篮球那么大'],en:['Giant Squid','Eyes as big as basketballs'],ja:['ダイオウイカ','バスケットボール大の目'],ko:['대왕오징어','농구공만 한 눈'],es:['Calamar gigante','Ojos como pelotas de baloncesto'],fr:['Calmar geant','Yeux grands comme des ballons']},
+     {icon:'🐋',depth:500,zh:['抹香鲸','能下潜到2000米深处'],en:['Sperm Whale','Can dive to 2000m depth'],ja:['マッコウクジラ','2000mまで潜れる'],ko:['향고래','2000m 깊이까지 잠수 가능'],es:['Cachalote','Puede bucear a 2000m'],fr:['Cachalot','Plonge a 2000m']},
+     {icon:'💡',depth:700,zh:['灯笼鱼','用生物发光吸引猎物'],en:['Lanternfish','Uses bioluminescence to attract prey'],ja:['ハダカイワシ','生物発光で獲物を引き寄せる'],ko:['등불고기','생물 발광으로 먹이를 유인'],es:['Pez linterna','Usa bioluminiscencia para atraer presas'],fr:['Poisson-lanterne','Bioluminescence pour attirer les proies']}
+   ],
+   landmarks:[
+     {depth:332,zh:'人类自由潜水世界纪录',en:'Human freedive world record',ja:'人間のフリーダイビング世界記録',ko:'인간 프리다이빙 세계 기록',es:'Record mundial apnea',fr:'Record mondial apnee'},
+     {depth:500,zh:'帝国大厦的高度',en:'Height of Empire State Building',ja:'エンパイアステートビルの高さ',ko:'엠파이어 스테이트 빌딩 높이',es:'Altura Empire State',fr:'Hauteur Empire State Building'}
+   ]},
+  {name:{zh:'深海带',en:'Midnight Zone',ja:'漸深層',ko:'심해대',es:'Zona abisal',fr:'Zone abyssale'},
+   from:1000,to:4000,color1:'#002244',color2:'#0a0a14',
+   creatures:[
+     {icon:'🐡',depth:1500,zh:['琵琶鱼（鮟鱇鱼）','雌性头顶的发光诱饵吸引猎物'],en:['Anglerfish','Female uses glowing lure on its head'],ja:['アンコウ','頭の発光ルアーで獲物を引き寄せる'],ko:['아귀','머리의 발광 미끼로 먹이 유인'],es:['Rape','Usa senuelo luminoso en la cabeza'],fr:['Baudroie','Leurre lumineux sur la tete']},
+     {icon:'🪱',depth:2500,zh:['管虫','不需要阳光，靠化学能生存'],en:['Tube Worm','Lives on chemical energy, no sunlight needed'],ja:['チューブワーム','光不要、化学エネルギーで生存'],ko:['관벌레','햇빛 없이 화학 에너지로 생존'],es:['Gusano tubicola','Vive de energia quimica'],fr:['Ver tubicole','Vit d energie chimique']},
+     {icon:'🦐',depth:3500,zh:['巨型等足虫','深海版的"西瓜虫"，可达50厘米'],en:['Giant Isopod','Deep-sea "roly-poly", up to 50cm'],ja:['オオグソクムシ','深海のダンゴムシ、50cmまで'],ko:['대왕등각류','심해의 공벌레, 최대 50cm'],es:['Isopodo gigante','"Bicho bola" del mar profundo, 50cm'],fr:['Isopode geant','Cloporte des abysses, 50cm']}
+   ],
+   landmarks:[
+     {depth:1000,zh:'永恒黑暗从这里开始',en:'Permanent darkness begins here',ja:'永遠の暗闇がここから始まる',ko:'영원한 어둠이 시작되는 곳',es:'La oscuridad permanente empieza aqui',fr:'Les tenebres permanentes commencent ici'},
+     {depth:3800,zh:'泰坦尼克号沉没深度',en:'Depth of Titanic wreck',ja:'タイタニック号沈没深度',ko:'타이타닉호 침몰 깊이',es:'Profundidad del Titanic',fr:'Profondeur du Titanic'}
+   ]},
+  {name:{zh:'超深渊带',en:'Hadal Zone',ja:'超深海帯',ko:'초심해대',es:'Zona hadal',fr:'Zone hadale'},
+   from:4000,to:11000,color1:'#0a0a14',color2:'#020204',
+   creatures:[
+     {icon:'🐌',depth:5000,zh:['铁甲蜗牛','壳上覆盖硫化铁，天然装甲'],en:['Scaly-foot Snail','Shell armored with iron sulfide'],ja:['スケーリーフット','硫化鉄で覆われた殻'],ko:['비늘발 달팽이','황화철로 덮인 갑옷 껍질'],es:['Caracol de pie escamoso','Armadura de sulfuro de hierro'],fr:['Escargot a pied ecailleux','Coquille en sulfure de fer']},
+     {icon:'🪼',depth:8200,zh:['深海水母','在8000米深处发现的幽灵水母'],en:['Deep-sea Jellyfish','Ghost jellyfish found at 8000m'],ja:['深海クラゲ','8000mで発見された幽霊クラゲ'],ko:['심해 해파리','8000m에서 발견된 유령 해파리'],es:['Medusa abisal','Medusa fantasma a 8000m'],fr:['Meduse abyssale','Meduse fantome a 8000m']},
+     {icon:'🐟',depth:8178,zh:['马里亚纳狮子鱼','已知最深处的鱼类'],en:['Mariana Snailfish','Deepest-living fish ever found'],ja:['マリアナスネイルフィッシュ','最も深い場所に住む魚'],ko:['마리아나 꼼치','가장 깊은 곳에 사는 물고기'],es:['Pez caracol de las Marianas','El pez mas profundo'],fr:['Poisson-limace des Mariannes','Le poisson le plus profond']},
+     {icon:'🦠',depth:10900,zh:['极端微生物','在极端高压下仍然存活的生命'],en:['Extremophile Microbes','Life surviving extreme pressure'],ja:['極限環境微生物','極限の圧力でも生き残る生命'],ko:['극한 미생물','극한의 수압에서 생존하는 생명'],es:['Microbios extremofilos','Vida en presion extrema'],fr:['Microbes extremophiles','Vie sous pression extreme']}
+   ],
+   landmarks:[
+     {depth:4267,zh:'平均海洋深度',en:'Average ocean depth',ja:'海洋の平均深度',ko:'평균 해양 깊이',es:'Profundidad media del oceano',fr:'Profondeur moyenne de l ocean'},
+     {depth:8848,zh:'如果把珠穆朗玛峰倒过来放，峰顶在这里',en:'Mt. Everest would fit upside down here',ja:'エベレストを逆さにしてもここに収まる',ko:'에베레스트를 거꾸로 넣어도 여기 들어감',es:'El Everest invertido cabria aqui',fr:'L Everest renverse tiendrait ici'},
+     {depth:10935,zh:'挑战者深渊 — 地球最深点',en:'Challenger Deep — Deepest point on Earth',ja:'チャレンジャー海淵 — 地球最深部',ko:'챌린저 해연 — 지구 최심부',es:'Fosa Challenger — Punto mas profundo',fr:'Fosse Challenger — Point le plus profond'}
+   ]}
+];
+
+var MAX_DEPTH=11000;
+var PX_PER_METER=6;
+
+function buildOcean(){
+  var ocean=document.getElementById('ocean');
+  ocean.innerHTML='';
+
+  // Start zone
+  var startDiv=document.createElement('div');
+  startDiv.className='zone';
+  startDiv.style.minHeight='100vh';
+  startDiv.style.background='linear-gradient(180deg,#0099cc,#0077be)';
+  startDiv.innerHTML='<div class="zone-title" style="opacity:.6;font-size:clamp(20px,4vw,36px);letter-spacing:2px">'+t().scroll_hint+'</div>';
+  ocean.appendChild(startDiv);
+
+  ZONES.forEach(function(zone){
+    var div=document.createElement('div');
+    div.className='zone';
+    var h=(zone.to-zone.from)*PX_PER_METER;
+    div.style.minHeight=h+'px';
+    div.style.background='linear-gradient(180deg,'+zone.color1+','+zone.color2+')';
+    div.setAttribute('data-from',zone.from);
+    div.setAttribute('data-to',zone.to);
+
+    div.innerHTML='<div class="zone-title">'+(zone.name[lang]||zone.name.en)+'</div>';
+
+    // Merge creatures and landmarks, sort by depth
+    var items=[];
+    zone.creatures.forEach(function(c){items.push({type:'creature',data:c,depth:c.depth});});
+    zone.landmarks.forEach(function(l){items.push({type:'landmark',data:l,depth:l.depth});});
+    items.sort(function(a,b){return a.depth-b.depth;});
+
+    items.forEach(function(item){
+      if(item.type==='creature'){
+        var c=item.data;
+        var info=c[lang]||c.en;
+        var el=document.createElement('div');
+        el.className='creature';
+        el.innerHTML='<div class="creature-icon">'+c.icon+'</div><div class="creature-info"><h3>'+info[0]+'</h3><p>'+info[1]+'</p><div class="creature-depth">'+c.depth+'m</div></div>';
+        div.appendChild(el);
+      }else{
+        var l=item.data;
+        var el=document.createElement('div');
+        el.className='landmark';
+        el.innerHTML='<div class="landmark-line"></div><div class="landmark-text">'+(l[lang]||l.en)+'</div><div class="landmark-depth">'+l.depth+'m</div>';
+        div.appendChild(el);
+      }
+    });
+
+    ocean.appendChild(div);
+  });
+
+  // Bottom
+  var bottom=document.createElement('div');
+  bottom.className='zone';
+  bottom.style.minHeight='60vh';
+  bottom.style.background='#020204';
+  bottom.innerHTML='<div class="bottom"><h2>'+t().bottom_title+'</h2><p>'+t().bottom_desc+'</p><div style="margin-top:24px;font-size:64px">🏴</div></div>';
+  ocean.appendChild(bottom);
+}
+
+// Depth tracking
+function updateDepth(){
+  var scrollY=window.scrollY;
+  var totalH=document.getElementById('ocean').scrollHeight-window.innerHeight;
+  var pct=Math.min(1,scrollY/totalH);
+  var depth=Math.round(pct*MAX_DEPTH);
+  document.getElementById('depthNum').textContent=depth+'m';
+}
+
+// Scroll reveal
+function revealOnScroll(){
+  var els=document.querySelectorAll('.creature:not(.visible),.landmark:not(.visible)');
+  var wh=window.innerHeight;
+  els.forEach(function(el){
+    var r=el.getBoundingClientRect();
+    if(r.top<wh*0.85){el.classList.add('visible');}
+  });
+}
+
+window.addEventListener('scroll',function(){updateDepth();revealOnScroll();},{passive:true});
+
+// Bubbles
+function createBubbles(){
+  var container=document.getElementById('bubbles');
+  for(var i=0;i<15;i++){
+    var b=document.createElement('div');
+    b.className='bubble';
+    var size=Math.random()*8+4;
+    b.style.width=size+'px';
+    b.style.height=size+'px';
+    b.style.left=Math.random()*100+'%';
+    b.style.animationDuration=(Math.random()*8+6)+'s';
+    b.style.animationDelay=Math.random()*10+'s';
+    container.appendChild(b);
+  }
+}
+
+buildOcean();
+createBubbles();
+updateDepth();
+</script>
+</body>
+</html>

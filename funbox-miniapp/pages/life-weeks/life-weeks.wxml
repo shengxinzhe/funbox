@@ -1,0 +1,60 @@
+<view class="page">
+  <!-- Input -->
+  <view class="input-section" wx:if="{{!birthDate}}">
+    <view class="icon">{{'\ud83d\udcc5'}}</view>
+    <view class="title">人生小格子</view>
+    <view class="desc">每个格子代表你人生中的一周</view>
+    <picker mode="date" start="1940-01-01" end="2020-12-31" bindchange="onDateChange">
+      <button class="btn-primary">选择你的生日</button>
+    </picker>
+  </view>
+
+  <!-- Grid view -->
+  <view class="grid-section" wx:if="{{birthDate}}">
+    <view class="stats">
+      <view class="stat">
+        <view class="stat-val">{{livedWeeks}}</view>
+        <view class="stat-label">已过的周</view>
+      </view>
+      <view class="stat">
+        <view class="stat-val accent">{{remainWeeks}}</view>
+        <view class="stat-label">剩余的周</view>
+      </view>
+      <view class="stat">
+        <view class="stat-val">{{pct}}%</view>
+        <view class="stat-label">人生进度</view>
+      </view>
+    </view>
+
+    <!-- Progress bar -->
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{pct}}%"></view>
+    </view>
+
+    <!-- Grid (each row = 1 year, 52 columns) -->
+    <scroll-view scroll-x scroll-y class="grid-scroll">
+      <view class="grid">
+        <view class="row" wx:for="{{rows}}" wx:key="year" wx:for-item="row">
+          <view class="age-label">{{row.year}}</view>
+          <view class="weeks">
+            <view
+              wx:for="{{row.weeks}}"
+              wx:key="idx"
+              wx:for-item="w"
+              class="week {{w.state}}"
+            ></view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="legend">
+      <view class="legend-item"><view class="week lived"></view><text>已过</text></view>
+      <view class="legend-item"><view class="week current"></view><text>本周</text></view>
+      <view class="legend-item"><view class="week future"></view><text>未来</text></view>
+    </view>
+
+    <button class="share-btn" open-type="share">分享我的人生格子</button>
+    <view class="reset" bindtap="reset">重新选择生日</view>
+  </view>
+</view>

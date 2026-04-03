@@ -1,0 +1,59 @@
+<view class="page">
+  <!-- Idle -->
+  <view class="center-view" wx:if="{{phase === 'idle'}}">
+    <view class="icon">{{'\u2328\ufe0f'}}</view>
+    <view class="title">打字速度测试</view>
+    <view class="desc">60秒内尽可能多地输入正确的文字</view>
+    <view class="best" wx:if="{{bestCPM > 0}}">最佳记录: {{bestCPM}} 字/分钟</view>
+    <button class="btn-primary" bindtap="startGame">开始测试</button>
+  </view>
+
+  <!-- Playing -->
+  <view class="game-view" wx:if="{{phase === 'playing'}}">
+    <view class="timer-bar">
+      <view class="timer-fill" style="width: {{timerPct}}%"></view>
+    </view>
+    <view class="timer-text">{{timeLeft}}s</view>
+
+    <!-- Target text -->
+    <view class="target-box">
+      <text wx:for="{{targetChars}}" wx:key="idx" class="char {{item.state}}">{{item.ch}}</text>
+    </view>
+
+    <!-- Input -->
+    <textarea
+      class="input-area"
+      value="{{inputVal}}"
+      bindinput="onInput"
+      focus="{{inputFocus}}"
+      placeholder="在这里输入..."
+      auto-height
+      maxlength="500"
+    ></textarea>
+  </view>
+
+  <!-- Result -->
+  <view class="center-view" wx:if="{{phase === 'result'}}">
+    <view class="icon">{{'\ud83c\udfc6'}}</view>
+    <view class="result-cpm">{{cpm}}</view>
+    <view class="result-label">字/分钟</view>
+
+    <view class="result-stats">
+      <view class="result-stat">
+        <view class="rs-val">{{correctChars}}</view>
+        <view class="rs-label">正确</view>
+      </view>
+      <view class="result-stat">
+        <view class="rs-val">{{wrongChars}}</view>
+        <view class="rs-label">错误</view>
+      </view>
+      <view class="result-stat">
+        <view class="rs-val">{{accuracy}}%</view>
+        <view class="rs-label">准确率</view>
+      </view>
+    </view>
+
+    <button class="btn-primary" bindtap="startGame">再试一次</button>
+    <button class="share-btn" open-type="share">分享成绩</button>
+  </view>
+</view>

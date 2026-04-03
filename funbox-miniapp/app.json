@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/reaction/reaction",
+    "pages/memory/memory",
+    "pages/spend/spend",
+    "pages/deep-sea/deep-sea",
+    "pages/life-weeks/life-weeks",
+    "pages/typing/typing"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0a0a0f",
+    "navigationBarTitleText": "FunBox",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0a0a0f",
+    "backgroundTextStyle": "light"
+  },
+  "sitemapLocation": "sitemap.json"
+}

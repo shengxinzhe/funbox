@@ -1,0 +1,124 @@
+.page {
+  min-height: 100vh;
+  padding: 32rpx;
+}
+
+.center-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+}
+
+.icon { font-size: 100rpx; margin-bottom: 24rpx; }
+.title { font-size: 44rpx; font-weight: 700; margin-bottom: 12rpx; }
+.desc { font-size: 28rpx; color: #8888a0; margin-bottom: 32rpx; }
+
+.best {
+  font-size: 26rpx;
+  color: #6c63ff;
+  padding: 12rpx 32rpx;
+  background: rgba(108, 99, 255, 0.1);
+  border-radius: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6c63ff, #5a52d5);
+  color: #fff;
+  border: none;
+  border-radius: 48rpx;
+  padding: 24rpx 64rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+.btn-primary::after { border: none; }
+
+/* Timer */
+.timer-bar {
+  height: 8rpx;
+  background: #1a1a2e;
+  border-radius: 4rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6c63ff, #ff6584);
+  transition: width 1s linear;
+}
+
+.timer-text {
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #6c63ff;
+  margin-bottom: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Target */
+.target-box {
+  background: #14141f;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 24rpx;
+  font-size: 34rpx;
+  line-height: 2;
+  letter-spacing: 2rpx;
+}
+
+.char { color: #8888a0; }
+.char.correct { color: #27ae60; }
+.char.wrong { color: #e74c3c; background: rgba(231, 76, 60, 0.2); border-radius: 4rpx; }
+.char.current { color: #e8e8f0; border-bottom: 4rpx solid #6c63ff; }
+
+/* Input */
+.input-area {
+  width: 100%;
+  min-height: 120rpx;
+  background: #14141f;
+  border: 2rpx solid rgba(108, 99, 255, 0.3);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  color: #e8e8f0;
+  font-size: 32rpx;
+}
+
+/* Result */
+.result-cpm {
+  font-size: 120rpx;
+  font-weight: 800;
+  color: #6c63ff;
+}
+
+.result-label {
+  font-size: 30rpx;
+  color: #8888a0;
+  margin-bottom: 32rpx;
+}
+
+.result-stats {
+  display: flex;
+  gap: 48rpx;
+  margin-bottom: 40rpx;
+}
+
+.result-stat { text-align: center; }
+.rs-val { font-size: 36rpx; font-weight: 700; }
+.rs-label { font-size: 22rpx; color: #8888a0; margin-top: 4rpx; }
+
+.share-btn {
+  margin-top: 20rpx;
+  background: rgba(108, 99, 255, 0.12);
+  color: #6c63ff;
+  border: 1rpx solid rgba(108, 99, 255, 0.25);
+  border-radius: 48rpx;
+  padding: 16rpx 40rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+.share-btn::after { border: none; }

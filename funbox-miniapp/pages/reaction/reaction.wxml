@@ -1,0 +1,39 @@
+<view class="page {{state}}" bindtap="handleTap">
+  <!-- Waiting state -->
+  <block wx:if="{{state === 'idle'}}">
+    <view class="icon">{{'\u26a1'}}</view>
+    <view class="title">反应速度测试</view>
+    <view class="hint">点击屏幕开始</view>
+    <view class="best" wx:if="{{bestTime > 0}}">最佳记录: {{bestTime}}ms</view>
+  </block>
+
+  <!-- Red: waiting for green -->
+  <block wx:if="{{state === 'waiting'}}">
+    <view class="icon">{{'\ud83d\udd34'}}</view>
+    <view class="title">等待变绿...</view>
+    <view class="hint">看到绿色后立刻点击</view>
+  </block>
+
+  <!-- Green: tap now! -->
+  <block wx:if="{{state === 'ready'}}">
+    <view class="icon">{{'\ud83d\udfe2'}}</view>
+    <view class="title">点击!</view>
+  </block>
+
+  <!-- Too early -->
+  <block wx:if="{{state === 'early'}}">
+    <view class="icon">{{'\u274c'}}</view>
+    <view class="title">太早了!</view>
+    <view class="hint">点击重新开始</view>
+  </block>
+
+  <!-- Result -->
+  <block wx:if="{{state === 'result'}}">
+    <view class="icon">{{'\ud83c\udfc6'}}</view>
+    <view class="time">{{reactionTime}}ms</view>
+    <view class="rating">{{rating}}</view>
+    <view class="hint">点击再试一次</view>
+    <view class="best" wx:if="{{bestTime > 0}}">最佳记录: {{bestTime}}ms</view>
+    <button class="share-btn" open-type="share">分享成绩</button>
+  </block>
+</view>

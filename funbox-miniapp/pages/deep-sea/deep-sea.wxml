@@ -1,0 +1,61 @@
+<view class="page">
+  <!-- Depth indicator -->
+  <view class="depth-indicator">
+    <view class="depth-value">{{currentDepth}}m</view>
+    <view class="depth-label">深度</view>
+  </view>
+
+  <!-- Ocean scroll -->
+  <scroll-view
+    scroll-y
+    class="ocean"
+    bindscroll="onScroll"
+    scroll-top="{{scrollTop}}"
+  >
+    <!-- Zones -->
+    <view
+      wx:for="{{zones}}"
+      wx:key="name"
+      class="zone"
+      style="background: linear-gradient({{item.color1}}, {{item.color2}}); min-height: {{item.height}}rpx;"
+    >
+      <view class="zone-name">{{item.name}} ({{item.from}}-{{item.to}}m)</view>
+
+      <!-- Creatures -->
+      <view
+        wx:for="{{item.creatures}}"
+        wx:for-item="c"
+        wx:key="name"
+        class="creature"
+        style="margin-top: {{c.offset}}rpx;"
+      >
+        <view class="creature-icon">{{c.icon}}</view>
+        <view class="creature-info">
+          <view class="creature-name">{{c.name}}</view>
+          <view class="creature-desc">{{c.desc}}</view>
+          <view class="creature-depth">{{c.depth}}m</view>
+        </view>
+      </view>
+
+      <!-- Landmarks -->
+      <view
+        wx:for="{{item.landmarks}}"
+        wx:for-item="lm"
+        wx:key="text"
+        class="landmark"
+        style="margin-top: {{lm.offset}}rpx;"
+      >
+        <view class="landmark-line"></view>
+        <view class="landmark-text">{{lm.depth}}m - {{lm.text}}</view>
+      </view>
+    </view>
+
+    <!-- Bottom -->
+    <view class="bottom">
+      <view class="bottom-icon">{{'\ud83c\udf0d'}}</view>
+      <view class="bottom-text">你已到达地球最深处</view>
+      <view class="bottom-sub">挑战者深渊 10,935m</view>
+      <button class="share-btn" open-type="share">分享深海之旅</button>
+    </view>
+  </scroll-view>
+</view>
